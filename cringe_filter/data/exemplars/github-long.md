@@ -245,7 +245,7 @@ prompting, and 300-word exemplars beat 50-word ones.
 > But there's not as many of NodeType "14"  (Quadruple Point on the outer surface) in ex2 as there are in "spiky", and more of "12".
 > 
 > ## SharedVertexList.txt
-> In "spiky" the values are all positive. In ex2, some values are negative. I doubt this would make a difference. Just has to do with the center of the microstructure. You tried changing this and had the same issue though.
+> In "spiky" the values are all positive. In ex2, some values are negative. I doubt this would make a difference. Just has to do with the center of the microstructure. You tried changing this and had the same issue though.
 > 
 > ## Other Comments
 > 
