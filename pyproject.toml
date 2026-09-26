@@ -24,9 +24,11 @@ dependencies = []
 [project.optional-dependencies]
 rewrite = ["anthropic>=0.40"]
 test = ["pytest"]
+docs = ["sphinx>=7", "myst-parser>=3", "furo"]
 
 [project.urls]
 Homepage = "https://github.com/sgbaird/cringe-filter"
+Documentation = "https://cringe-filter.readthedocs.io"
 Issues = "https://github.com/sgbaird/cringe-filter/issues"
 
 [project.scripts]

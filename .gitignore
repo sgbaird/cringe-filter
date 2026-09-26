@@ -4,3 +4,5 @@ build/
 dist/
 .venv/
 .pytest_cache/
+docs/_build/
+docs/cli.md
