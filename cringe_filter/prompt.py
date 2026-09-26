@@ -45,7 +45,7 @@ def plain_note(note, min_words=2):
     """A register-card rule with its measurements removed.
 
     The cards in registers.md are written for a person and quote the rates
-    behind each rule ("25.4 per 1000 words, nearly double his rate in his
+    behind each rule ("25.4 per 1000 words, nearly double the human rate in your
     own repos"). Numbers are not instructions a model can act on for one
     short rewrite, and the Edison review found them in the emitted prompt,
     so every sentence that carries a figure is dropped here. A sentence
@@ -145,10 +145,10 @@ def _stance_line(m):
     out = []
     hedge = m.get("hedge_per_1k", 0) or 0
     if hedge >= 5:
-        out.append("He hedges freely here (\"might be\", \"not sure if\", "
+        out.append("Human writing hedges freely here (\"might be\", \"not sure if\", "
                    "\"seems to\"): hedge whatever is uncertain")
     elif hedge < 2:
-        out.append("He commits to positions here: hedge only genuine uncertainty")
+        out.append("Human writing commits to positions here: hedge only genuine uncertainty")
     else:
         out.append("Hedge only what is uncertain")
     if (m.get("question_per_1k", 0) or 0) >= 5:
@@ -197,7 +197,7 @@ FORMAL = {"paper", "proposal"}
 
 
 def _small_words_line(reg, ref, mfw, conversational=True, n_his=12, n_claude=5):
-    """The function words that separate him from Claude in this register.
+    """The function words that separate human writing from Claude in this register.
 
     Read from the Burrows' Delta profile the bundle already carries: the
     register's mean rate for each of the most frequent words against
@@ -207,8 +207,8 @@ def _small_words_line(reg, ref, mfw, conversational=True, n_his=12, n_claude=5):
     "the" rose past them (docs/voice/research/rewrite-experiment.md)."""
     if not mfw or not reg.get("mfw_mean") or not ref.get("mfw_mean"):
         return None
-    his, claude = reg["mfw_mean"], ref["mfw_mean"]
-    lean = [(w, (his[j] + 0.5) / (claude[j] + 0.5), his[j], claude[j])
+    human, claude = reg["mfw_mean"], ref["mfw_mean"]
+    lean = [(w, (human[j] + 0.5) / (claude[j] + 0.5), human[j], claude[j])
             for j, w in enumerate(mfw["words"]) if w in SMALL_WORDS]
     mine = [w for w, r, a, _ in sorted(lean, key=lambda x: -x[1])
             if r >= 3 and a >= 2][:n_his]
@@ -216,7 +216,7 @@ def _small_words_line(reg, ref, mfw, conversational=True, n_his=12, n_claude=5):
               if r <= 1 / 3 and b >= 1][:n_claude]
     if len(mine) < 3:
         return None
-    line = ("Small words he uses far more than Claude here: "
+    line = ("Small words human writing uses far more than Claude here: "
             + ", ".join(f'"{w}"' for w in mine) + ".")
     if theirs:
         line += (" Claude leans on " + ", ".join(f'"{w}"' for w in theirs) + ".")
@@ -231,37 +231,37 @@ STRUCTURE_WORDING = 2
 
 
 def _structure_line(reg, ref, wording=STRUCTURE_WORDING, formal=False, draft=None):
-    """How his sentences are built here, against Claude's, in plain words.
+    """How human sentences are built here, against Claude's, in plain words.
 
     Read from the parser-free structure rates the profile carries
     (cringe_filter.structure, docs/voice/data/structure-profile.json). The held-out
     rewrite test found that rewrites fixed the formatting, the dashes and the
     colons, and kept Claude's sentence skeleton: a noun-phrase subject, a
-    past-tense or "is" verb, a statement; his subject is usually a person,
-    his plans sit in modal and infinitive verbs, and he asks
+    past-tense or "is" verb, a statement; the human subject is usually a person,
+    human plans sit in modal and infinitive verbs, and it asks
     (docs/voice/research/structure.md). Each clause below appears only when
-    the register's own rates put it on his side by a clear margin, so a
+    the register's own rates put it on the human side by a clear margin, so a
     rebuild changes the wording without anyone editing it.
 
     Wording 1 is the one round two tested on fresh held-out comments. It
-    moved every grammar judge toward him and overcorrected in two places:
+    moved every grammar judge toward the human writing and overcorrected in two places:
     its example ("I ran it on the Pi") turned reports into one "I did X"
     sentence after another, and "no parenthesis" removed nearly all of them
-    where he uses half Claude's rate. Wording 2 changes only those two
+    where human writing uses half Claude's rate. Wording 2 changes only those two
     clauses."""
-    his = (reg.get("structure") or {}).get("rates")
+    human = (reg.get("structure") or {}).get("rates")
     cl = (ref.get("structure") or {}).get("rates")
-    if not his or not cl:
+    if not human or not cl:
         return None
 
     def lean(k):
-        a, b = his.get(k), cl.get(k)
+        a, b = human.get(k), cl.get(k)
         if a is None or b is None:
             return 1.0
         return (a + 1e-3) / (b + 1e-3)
 
     if formal:
-        return _formal_structure_line(his, lean, draft)
+        return _formal_structure_line(human, lean, draft)
     out = []
     if lean("person_open") >= 2 and wording == 1:
         out.append("Make a person the subject: what I, we or you did, think or "
@@ -293,26 +293,26 @@ def _structure_line(reg, ref, wording=STRUCTURE_WORDING, formal=False, draft=Non
         marks = [names[k] for k in packed]
         marks = ", ".join(marks[:-1]) + " and " + marks[-1]
         out.append(f"Fewer {marks}: give a second idea its own sentence.")
-    if (his.get("one_sentence_paragraphs") or 0) >= 0.4 and lean("one_sentence_paragraphs") >= 1.3:
+    if (human.get("one_sentence_paragraphs") or 0) >= 0.4 and lean("one_sentence_paragraphs") >= 1.3:
         out.append("One point per paragraph, often a single sentence.")
     if len(out) < 2:
         return None
     return " ".join(out)
 
 
-def _formal_structure_line(his, lean, draft=None):
+def _formal_structure_line(human, lean, draft=None):
     """The same measures, worded for a manuscript or a proposal, where
     the contrast is Claude's own scientific prose (paper_registers.py):
     in the lab's manuscripts Claude opens on a noun phrase and packs a
-    second idea behind a colon or a semicolon, at four to five times his
-    rate in his papers before 2023, and writes "we" a fifth as often.
+    second idea behind a colon or a semicolon, at four to five times the human
+    rate in the human-written papers before 2023, and writes "we" a fifth as often.
 
     Given unconditionally, the clauses overshot on Claude's one-pass
-    drafts of his own sections, which were already at his rates: "we"
+    drafts of the human sections, which were already at the human rates: "we"
     doubled, every semicolon went, sentences shrank from 22 words to 18
     (docs/voice/research/technical-writing.md, second pass). So with a
     draft in hand a clause appears only where the draft sits on Claude's
-    side of his rate, and without one each clause says not to overdo it.
+    side of the human rate, and without one each clause says not to overdo it.
     """
     mine = None
     if draft:
@@ -320,10 +320,10 @@ def _formal_structure_line(his, lean, draft=None):
         mine = shape.rates(shape.measure(draft))
 
     def off(k, direction):
-        """Is the draft on Claude's side of his rate for k?"""
-        if mine is None or mine.get(k) is None or his.get(k) is None:
+        """Is the draft on Claude's side of the human rate for k?"""
+        if mine is None or mine.get(k) is None or human.get(k) is None:
             return True
-        return mine[k] < 0.5 * his[k] if direction < 0 else mine[k] > 1.5 * his[k] + 0.01
+        return mine[k] < 0.5 * human[k] if direction < 0 else mine[k] > 1.5 * human[k] + 0.01
 
     out = []
     if lean("person_open") >= 1.5 and off("person_open", -1):
@@ -339,7 +339,7 @@ def _formal_structure_line(his, lean, draft=None):
         marks = [names[k] for k in packed]
         marks = (", ".join(marks[:-1]) + " or " + marks[-1]) if len(marks) > 1 else marks[0]
         out.append(f"Where a {marks} carries a second idea, give that idea its "
-                   f"own sentence; he still uses them, so do not remove every one.")
+                   f"own sentence; human writing still uses them, so do not remove every one.")
     return " ".join(out) if out else None
 
 
@@ -352,10 +352,10 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
     edits files (`cringe-filter instructions`) instead of a one-off rewrite.
 
     `small_words` adds a priority naming the function words that separate
-    him from Claude in the register (see `_small_words_line`). On by
+    human writing from Claude in the register (see `_small_words_line`). On by
     default since the held-out experiment: against the same prompt without
     it, it moved the topic-masked model by +0.04 (32 of 36 rewrites up) and
-    Delta toward him, with no loss on the other judges or in content. That
+    Delta toward the human writing, with no loss on the other judges or in content. That
     condition was added after the first round, so the gain is exploratory.
 
     `structure` adds a priority on how sentences are built (see
@@ -376,7 +376,7 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
     draft_words = len(text.split()) if text else None
 
     out = [
-        f"Rewrite the draft the way Sterling Baird would write it. Context: "
+        f"Rewrite the draft the way a careful human writer would write it here. Context: "
         f"{reg['label']}. "
         f"Preserve every factual claim, number, name, link, code span, command "
         f"and stated uncertainty. Do not add an answer the draft does not "
@@ -386,7 +386,7 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
     if standing:
         out[0] = (
             f"When you write or edit prose in these files (text a reader sees; "
-            f"leave code alone), write it the way Sterling Baird would. "
+            f"leave code alone), write it the way a careful human writer would. "
             f"Context: {reg['label']}. Keep every factual claim, number, name, "
             f"link, code span, command and stated uncertainty. If style "
             f"conflicts with fidelity, keep the facts.")
@@ -399,19 +399,19 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
                    "the prose between them.")
     ex = pick_exemplars(reg, ctx, n_exemplars, draft_words, max_exemplar_words)
     if ex:
-        out += ["", "## Examples of Sterling writing in this situation"]
+        out += ["", "## Examples of human writing in this situation"]
         for e in ex:
             out += ["", "> " + e.replace("\n", "\n> ")]
     elif ctx == "email":
         out += ["", "## Examples", "",
-                "No examples ship for email, because his sent mail is "
+                "No examples ship for email, because the sent mail in the corpus is "
                 "private. The nearest public register is the short message:"]
         for e in pick_exemplars({"exemplars": ["message.md"],
                                  "doc_words_median": 21, "doc_words_p90": 66},
                                 "message", 2, None, 120):
             out += ["", "> " + e.replace("\n", "\n> ")]
     elif ctx in FORMAL:
-        what = ("proposals, because his proposals are private"
+        what = ("proposals, because the human-written proposals are private"
                 if ctx == "proposal" else "scientific prose in this profile")
         out += ["", "## Examples", "",
                 f"No examples ship for {what}. Defer to the scientific "
@@ -425,12 +425,12 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
              "the work instead." if ctx in FORMAL else
              "Lead with the answer or the requested action.")
     length = (f"Keep it under {budget} words unless the content needs more; "
-              f"his median here is {reg['doc_words_median']}, and when he needs "
-              f"more room he adds sentences and keeps each one short.")
+              f"the human median here is {reg['doc_words_median']}, and when more "
+              f"room is needed, add sentences and keep each one short.")
     if ctx in FORMAL:
         # A section's length is set by its content, and the line above
-        # made the model split his sentences: 17 words against his 26 on
-        # eight of his sections (docs/voice/research/technical-writing.md).
+        # made the model split human sentences: 17 words against the human 26 on
+        # eight human-written sections (docs/voice/research/technical-writing.md).
         length = ("Keep the draft's length and its sentences whole; split a "
                   "sentence only when it carries two ideas.")
     out += ["", "## Priorities, in order",
@@ -463,15 +463,15 @@ def build_prompt(text, context="any", n_exemplars=2, max_exemplar_words=300,
     measured = [r for r in rules_for(ctx) if r.evidence == "measured"]
     measured.sort(key=lambda r: -(r.lean or 0))
     if ctx in FORMAL:
-        # The paper ratios compare his detexed manuscripts with Claude's
+        # The paper ratios compare the human detexed manuscripts with Claude's
         # GitHub comments, so the formatting rules top the ranking only
-        # because detex stripped his \section, \textbf and \item; ranked
+        # because detex stripped the \section, \textbf and \item; ranked
         # that way the em dash, which the linter fails a paper on, fell off
         # the list. Errors first here.
         measured.sort(key=lambda r: r.severity != "error")
     # The corrective contrast goes in as one line ahead of the ranked
     # rules: ranked by ratio, "X, not Y" fell below the glyphs, and it is
-    # the member Claude writes most (1.5 per 1000 words against his 0.4),
+    # the member Claude writes most (1.5 per 1000 words against 0.4 in human writing),
     # the one the rewrites kept at Claude's rate (contrast-family.json).
     contrast = [r for r in measured if r.key in CONTRAST_KEYS]
     listed = [r for r in measured if r.key not in CONTRAST_KEYS]
@@ -581,7 +581,7 @@ def evidence_appendix(ctx, reg, ref, p, measured):
                        ('"you"', "you_per_1k"), ("exclamation marks", "exclaim_per_1k")):
         lines.append(f"- {label}: {m.get(key, 0) or 0:.2f} per 1k; Claude "
                      f"{rm.get(key, 0) or 0:.2f}")
-    lines.append("- Measured tells, Claude's rate over his, family-wise interval:")
+    lines.append("- Measured tells, Claude's rate over the human rate, family-wise interval:")
     for r in measured:
         ci = f", CI {r.ci[0]}-{r.ci[1]}" if r.ci else ""
         lines.append(f"  - {r.key}: {r.lean}x{ci}")
@@ -593,7 +593,7 @@ def evidence_appendix(ctx, reg, ref, p, measured):
             allow.append((phrase, t["lean"]))
     allow.sort(key=lambda r: r[1])
     if allow:
-        lines.append("- Phrases the corpus says are his (his rate over Claude's): "
+        lines.append("- Phrases the corpus says are human (the human rate over Claude's): "
                      + ", ".join(f"\"{ph}\" ({1 / max(lean, 1e-3):.0f}x)"
                                  for ph, lean in allow[:12]))
     if not reg.get("candidate_rates_measured", True):

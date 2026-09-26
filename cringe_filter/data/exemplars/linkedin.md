@@ -1,15 +1,15 @@
 <!-- cringe-lint: disable-file -->
 # LinkedIn exemplars
 
-Real posts, his own words, from the 89 posts that
-carry commentary he wrote rather than a bare repost. Read two or
+Real posts, from the 89 in the corpus that
+carry original commentary rather than a bare repost. Read two or
 three before drafting anything for this register.
 
 What to notice: the first person runs throughout, people are
 credited by name early, exclamation marks are used without irony,
 and there are no headers and almost no bold. Em dashes appear in
 1 of the 89 posts and nowhere else, which is
-the same concentrated pattern his email shows.
+the same concentrated pattern email shows.
 
 Drawn from a pool of 89 posts, 10,050 words.
 

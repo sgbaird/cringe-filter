@@ -1,6 +1,6 @@
 {
  "built": "2026-09-26",
- "about": "Compiled from docs/voice/data by scripts/voice/build_voicekit.py. Rates are per 1000 words. 'lean' is Claude's rate over Sterling's, median of a document-level bootstrap; 'ci' is the family-wise interval.",
+ "about": "Compiled from docs/voice/data by scripts/voice/build_voicekit.py. Rates are per 1000 words. 'lean' is Claude's rate over the human rate, median of a document-level bootstrap; 'ci' is the family-wise interval.",
  "sources": {
   "bootstrap-comparison.json": "af1e5b29f18b",
   "candidate-tells.json": "b1e218394413",
@@ -1537,7 +1537,7 @@
  },
  "registers": {
   "github": {
-   "label": "GitHub reply in his own repos",
+   "label": "GitHub reply in your own repos",
    "source": "github_own_repos",
    "n_docs": 7235,
    "n_words": 378991,
@@ -2809,14 +2809,14 @@
     "github-long.md"
    ],
    "card": {
-    "target": "under 100 words. His median is 27. His p90 is 110.",
+    "target": "under 100 words. The human median is 27. The human p90 is 110.",
     "rules": [
      "Lead with the answer or the action. Skip the preamble and do not restate the question.",
      "Avoid headers, tables and bold in a short reply. A reply under 100 words that needs an H3 is a reply that should be three sentences.",
-     "Bullets are allowed but keep them few. \"Tone down the bullets a bit. They don't have to go away completely, but it's overwhelming.\" 5.2 per 1000 words is his rate here, and it is the highest of any GitHub venue.",
+     "Bullets are allowed but keep them few. \"Tone down the bullets a bit. They don't have to go away completely, but it's overwhelming.\" 5.2 per 1000 words is the human rate here, and it is the highest of any GitHub venue.",
      "A status update is a sentence or two: what changed, where it is, what is blocked. Link to the artifact instead of describing it.",
-     "Questions back to the author are normal and welcome. 7.7 question marks per 1000 words is his rate; Claude's is 0.6.",
-     "\"We\" carries the work here, at 7.5 per 1000 words against 1.4 when he writes in someone else's repo. This is the register where he speaks for the lab.",
+     "Questions back to the author are normal and welcome. 7.7 question marks per 1000 words is the human rate; Claude's is 0.6.",
+     "\"We\" carries the work here, at 7.5 per 1000 words against 1.4 in someone else's repo. This is the register where the writer speaks for the lab.",
      "Per CLAUDE.md: hyperlink files and images by 7-character commit hash, and write \"No. 1\" rather than the numeral form that auto-links."
     ]
    }
@@ -4095,10 +4095,10 @@
    "card": {
     "target": "around 50 words, up to 300. Median 51, p90 297: about twice a repo comment, and the one GitHub venue where a paragraph is normal.",
     "rules": [
-     "Almost no formatting, and this is the strongest formatting signal in the whole profile. Bullets run at 0.33 per 1000 words against 5.2 in his repo comments, bold at 0.35 against 2.93, headers at 0.51. A Discussions post with a bulleted summary in it does not look like his.",
+     "Almost no formatting, and this is the strongest formatting signal in the whole profile. Bullets run at 0.33 per 1000 words against 5.2 in repo comments, bold at 0.35 against 2.93, headers at 0.51. A Discussions post with a bulleted summary in it does not look human.",
      "Hedge less and ask less. 7.9 hedges per 1000 words against 10.6, and 4.9 question marks against 7.7. A post here announces or explains; a comment in a thread negotiates.",
      "Write in prose paragraphs addressed to the group.",
-     "\"We\" is rarer here than in repo comments (2.7 per 1000 words), because he is usually addressing the people the \"we\" would refer to."
+     "\"We\" is rarer here than in repo comments (2.7 per 1000 words), because the post usually addresses the people the \"we\" would refer to."
     ]
    }
   },
@@ -5376,7 +5376,7 @@
    "card": {
     "target": "under 100 words, median 30, p90 126.",
     "rules": [
-     "First person singular, heavily. 25.4 per 1000 words, nearly double his rate in his own repos and close to his email rate. \"I ran into\", \"I think the issue is\", \"I'd be happy to open a PR\". Do not write as a lab.",
+     "First person singular, heavily. 25.4 per 1000 words, nearly double the human rate in your own repos and close to the human email rate. \"I ran into\", \"I think the issue is\", \"I'd be happy to open a PR\". Do not write as a lab.",
      "\"We\" almost disappears, 1.4 per 1000 words. A bug report is from a person.",
      "Exclamation marks are at their GitHub maximum, 4.95 per 1000 words. \"Thanks for the quick response!\" is in voice here and would be out of voice in a Discussions post.",
      "Headers are the exception to the no-headers rule, at 3.38 per 1000 words, because issue templates supply them. Keep the template's headers; do not add your own.",
@@ -5437,11 +5437,11 @@
    "reference": null,
    "exemplars": [],
    "card": {
-    "target": "under 170 words. Median is 57, p25 is 35, p75 is 104. Sentences are his shortest anywhere: median 15 words, p90 31.",
+    "target": "under 170 words. Median is 57, p25 is 35, p75 is 104. Sentences are the shortest of any long-form register: median 15 words, p90 31.",
     "rules": [
-     "Almost no formatting. Headers appear in 0% of his sent mail. Bold appears in 1.4%, bullets in 0.7%. An email with an H2 in it is not an email he would send.",
-     "The most personal register he has. \"I\" runs at 26.9 per 1000 words, more than double his GitHub rate and twenty times his tutorial rate. \"you\" runs at 22.0. Write to a person, as a person.",
-     "Hedge less than in a GitHub comment. 2.1 per 1000 words here against 10.8 in GitHub replies. Email is where he commits to a position.",
+     "Almost no formatting. Headers appear in 0% of the sent mail in the corpus. Bold appears in 1.4%, bullets in 0.7%. An email with an H2 in it is out of place.",
+     "The most personal long-form register. \"I\" runs at 26.9 per 1000 words, more than double the human GitHub rate and twenty times the tutorial rate. \"you\" runs at 22.0. Write to a person, as a person.",
+     "Hedge less than in a GitHub comment. 2.1 per 1000 words here against 10.8 in GitHub replies. Email is where to commit to a position.",
      "Greetings, by frequency: Hi (38), Hello (16), Hey (10), Dear (10), Good morning (3). \"Hi\" is the default.",
      "Sign-offs, by frequency: Thanks (21), Best (17), Thank you (12). \"Sincerely\" appears once in 144 messages. Do not use it.",
      "One ask per email, stated in the first two sentences.",
@@ -6744,13 +6744,13 @@
     "message.md"
    ],
    "card": {
-    "target": "under 65 words. Median 22, p90 65. Sentences are the shortest he writes anywhere: median 10 words in a DM, p90 28.",
+    "target": "under 65 words. Median 22, p90 65. Sentences are the shortest of any register: median 10 words in a DM, p90 28.",
     "rules": [
      "No formatting at all. Zero headers, zero bold, zero bullets, zero em dashes across all 757.",
-     "The most person-to-person register he has. \"I\" at 31.2 per 1000 words and \"you\" at 29.9 in a DM, both higher than in his email.",
+     "The most person-to-person register. \"I\" at 31.2 per 1000 words and \"you\" at 29.9 in a DM, both higher than in human email.",
      "Ask something. Questions run at 13.2 per 1000 words in DMs and 9.3 in comments, the highest rates in any register.",
-     "Hedging comes back, 7.6 to 8.6 per 1000 words, close to his GitHub rate and five times his LinkedIn-post rate. A short note to a person is where he is tentative.",
-     "Open with the person's name and close in one line. \"Would love to\", \"happy to\", \"let me know\" are his.",
+     "Hedging comes back, 7.6 to 8.6 per 1000 words, close to the human GitHub rate and five times the LinkedIn-post rate. A short note to a person is where tentativeness belongs.",
+     "Open with the person's name and close in one line. \"Would love to\", \"happy to\", \"let me know\" fit here.",
      "See exemplars/message.md for twelve real ones."
     ]
    }
@@ -8027,16 +8027,16 @@
     "linkedin.md"
    ],
    "card": {
-    "target": "under 290 words. His median post is 56 and his p90 is 283. The earlier figure of 105 came from the 14 posts a search engine had indexed, which were his longest; most of what he posts is three or four sentences.",
+    "target": "under 290 words. The human median post is 56 and the human p90 is 283. The earlier figure of 105 came from the 14 posts a search engine had indexed, which were the longest; most posts are three or four sentences.",
     "rules": [
-     "Headers, bullets and bold are absent, and there is one em dash in 89 posts. LinkedIn renders none of it and he does not reach for it.",
-     "First person singular at 19.3 per 1000 words, above his GitHub rate. A post is him saying what he did, built, or liked.",
-     "Exclamation marks are normal here, 9.1 per 1000 words, and 63 of the 89 posts carry at least one. This is the most exclamatory register he has, ahead of email. Suppressing it reads as colder than he is.",
+     "Headers, bullets and bold are absent, and there is one em dash in 89 posts. LinkedIn renders none of it, so do not reach for it.",
+     "First person singular at 19.3 per 1000 words, above the human GitHub rate. A post is the writer saying what they did, built, or liked.",
+     "Exclamation marks are normal here, 9.1 per 1000 words, and 63 of the 89 posts carry at least one. This is the most exclamatory register, ahead of email. Suppressing it reads as colder than the writer means to be.",
      "Emoji appear in 31 of 89 posts, and they are faces and gestures rather than status markers. The linter's rule is about the checkmark and rocket set, which appears three times in 246 posts and comments; a wink after a joke is in voice.",
-     "He credits people by name, usually in the first two sentences.",
+     "Credit people by name, usually in the first two sentences.",
      "Hashtags are rare: 11 of 89 posts use any, and those use four to six, mostly #materialsscience, #machinelearning, #automation.",
      "About three links per post, usually the paper, the code and the demo.",
-     "Hedging falls to 1.4 per 1000 words, an eighth of his GitHub rate. LinkedIn is where he states a position."
+     "Hedging falls to 1.4 per 1000 words, an eighth of the human GitHub rate. LinkedIn is where to state a position."
     ]
    }
   },
@@ -9294,7 +9294,7 @@
     "target": "500 to 1000 words per page, sentences around 18 words.",
     "rules": [
      "Second person, present tense. \"you\" runs at 10.4 per 1000 words here.",
-     "Drop the first person singular almost entirely: 0.2 per 1000 words in his tutorials versus 14.0 in his GitHub comments. Use \"we\" for shared steps.",
+     "Drop the first person singular almost entirely: 0.2 per 1000 words in human-written tutorials versus 14.0 in human GitHub comments. Use \"we\" for shared steps.",
      "Drop the hedging too: 0.7 per 1000 words versus 10.6. A tutorial states what to do. Put real uncertainty in one note and keep the steps plain.",
      "Headers are expected here (3.9 per 1000 words) and structure is welcome. This is the one register where formatting is not a tell.",
      "Show the command or the code, then say what it did. Not the reverse.",
@@ -10577,17 +10577,17 @@
     "target": "",
     "rules": [
      "Claim only what was done. Where a result does not exist yet, leave a marked placeholder; never invent, embellish or extrapolate one. This was the most frequent correction in the lab's threads, 14 of the 87.",
-     "Write for the reader of the paper, and leave out any reply to whoever asked for the edit. A fix to a reviewer's point changes the text; it does not add a sentence addressing the point, and issue or PR numbers stay out of the main text. 12 of the 87, in his words: \"you're now hyper focusing on responding to me rather than considering the message that is meant to be conveyed to the audience.\"",
-     "Let \"we\" carry the work, and give a second idea its own sentence rather than a colon or a semicolon. His papers before 2023 run \"we\" at 8.1 per 1000 words, colons mid-sentence at 1.2 and semicolons at 1.7; Claude's manuscript prose runs them at 1.6, 5.9 and 7.0, and opens 35% of its sentences on \"The\" or \"This\" against his 14%.",
+     "Write for the reader of the paper, and leave out any reply to whoever asked for the edit. A fix to a reviewer's point changes the text; it does not add a sentence addressing the point, and issue or PR numbers stay out of the main text. 12 of the 87, in a reviewer's words: \"you're now hyper focusing on responding to me rather than considering the message that is meant to be conveyed to the audience.\"",
+     "Let \"we\" carry the work, and give a second idea its own sentence rather than a colon or a semicolon. Human first-author papers before 2023 run \"we\" at 8.1 per 1000 words, colons mid-sentence at 1.2 and semicolons at 1.7; Claude's manuscript prose runs them at 1.6, 5.9 and 7.0, and opens 35% of its sentences on \"The\" or \"This\" against 14% in human papers.",
      "Plain words over jargon, every abbreviation and coined term defined at first use, one term per concept throughout. 17 of the 87 instructions.",
-     "Sentence length is not a fault to fix in a paper: split a sentence only when it carries two ideas. His median is 20 words and so is Claude's here. Rewrites still shorten them: the paper prompt took Claude's drafts of his sections from 20.5 words a sentence to 18.3, against his 22.",
-     "No self-citation of the work's own importance. If a sentence sells the paper rather than reporting it, cut the sentence. Significance words (critical, crucial, key, essential, vital) run at 0.20 per 1000 words in his earlier papers and 0.88 in Claude's.",
-     "Every magnitude claim needs a number behind it or a weaker word in front of it. He hedges at 1.2 per 1000 words here; Claude's manuscript prose carries no hedge at all.",
+     "Sentence length is not a fault to fix in a paper: split a sentence only when it carries two ideas. The human median is 20 words and so is Claude's here. Rewrites still shorten them: the paper prompt took Claude's drafts of human-written sections from 20.5 words a sentence to 18.3, against the human 22.",
+     "No self-citation of the work's own importance. If a sentence sells the paper rather than reporting it, cut the sentence. Significance words (critical, crucial, key, essential, vital) run at 0.20 per 1000 words in the earlier human-written papers and 0.88 in Claude's.",
+     "Every magnitude claim needs a number behind it or a weaker word in front of it. Human writing hedges at 1.2 per 1000 words here; Claude's manuscript prose carries no hedge at all.",
      "No \"I\" and no \"you\". \"We\" carries the agency.",
-     "Em dashes are his here, and still banned. His LaTeX carries --- at about 0.45 per 1000 words before 2023. He said why in a review of Claude's draft: \"--- is often an AI-giveaway, unfortunately. I like them, but AI uses them too much.\" The style guide's rule 1 bans them, and the linter fails them in a manuscript.",
-     "Headings and lists come from the template; the prose runs in paragraphs. In his raw first-author LaTeX \\section, \\item and \\textbf run at 4.8, 2.5 and 1.2 per 1000 words. Inside a paragraph there is no bold and no inline list.",
-     "The Latinate-verb rule does not apply here. \"Leverage\" and \"utilize\" run at 0.23 per 1000 words in his own first-author papers, and \"furthermore\" and its relatives at 0.70 before 2023, against 0.04 in Claude's manuscript prose. Neither is a tell in a paper.",
-     "\"Enable\", \"empower\" and \"unlock\" are not a Claude tell in a paper either: 0.08 per 1000 words in Claude's manuscript prose, 0.14 in his earlier papers. They rose to 1.06 in his own papers from 2023 on."
+     "Em dashes are human here, and still banned. Human LaTeX carries --- at about 0.45 per 1000 words before 2023. A reviewer said why in a review of Claude's draft: \"--- is often an AI-giveaway, unfortunately. I like them, but AI uses them too much.\" The style guide's rule 1 bans them, and the linter fails them in a manuscript.",
+     "Headings and lists come from the template; the prose runs in paragraphs. In raw human first-author LaTeX \\section, \\item and \\textbf run at 4.8, 2.5 and 1.2 per 1000 words. Inside a paragraph there is no bold and no inline list.",
+     "The Latinate-verb rule does not apply here. \"Leverage\" and \"utilize\" run at 0.23 per 1000 words in the human first-author papers, and \"furthermore\" and its relatives at 0.70 before 2023, against 0.04 in Claude's manuscript prose. Neither is a tell in a paper.",
+     "\"Enable\", \"empower\" and \"unlock\" are not a Claude tell in a paper either: 0.08 per 1000 words in Claude's manuscript prose, 0.14 in the earlier human-written papers. They rose to 1.06 in the human papers from 2023 on."
     ]
    }
   },
@@ -11863,19 +11863,19 @@
    "card": {
     "target": "",
     "rules": [
-     "Say what will be done, in the future tense. \"Will\" runs at 5.9 per 1000 words in his proposals and 1.2 in his papers.",
-     "Show the objective rather than announcing it. He struck \"The mentoring of undergraduate researchers is the central objective of this proposal\" from Claude's draft: \"*Demonstrate it* implicitly throughout the proposal. Write for the reviewer, not as a response to me.\"",
+     "Say what will be done, in the future tense. \"Will\" runs at 5.9 per 1000 words in the human-written proposals and 1.2 in the human-written papers.",
+     "Show the objective rather than announcing it. A reviewer struck \"The mentoring of undergraduate researchers is the central objective of this proposal\" from Claude's draft: \"*Demonstrate it* implicitly throughout the proposal. Write for the reviewer, not as a response to me.\"",
      "Define every abbreviation and coined term where it first appears, and use the funder's own names for things (the letter types the solicitation lists, where a draft said \"letter of support\").",
-     "Name the method plainly instead of by metaphor. He struck \"funnel\" from the agents' drafts because the method is not one, and \"anchor\" because it means something else in the field.",
-     "No commitments nobody made. He removed a recruiting pledge Claude added and a requirement nobody could source.",
+     "Name the method plainly instead of by metaphor. A reviewer struck \"funnel\" from the agents' drafts because the method is not one, and \"anchor\" because it means something else in the field.",
+     "No commitments nobody made. A reviewer removed a recruiting pledge Claude added and a requirement nobody could source.",
      "Write in the submitter's voice. When a student submits, the text is theirs, and the advisor appears as the advisor.",
-     "Fit the page limit by cutting content and leave the sentences whole. He sent back trimmed text that had become too vague to follow, and text that read as obnoxious in places and as terse fragments in others.",
-     "Every citation must exist and support the sentence it sits in. He caught an invented reference key and a misattributed claim in the agents' drafts.",
-     "Bullets are allowed, sparingly: \"tone down the bullets a bit. They don't have to go away completely, but it's overwhelming.\" \\textbf and \\emph run at 2.5 to 3 times his papers' rate, so a bold lead phrase is his; bold inside a sentence is not. A grant-writing slide he kept says to bold the one standout sentence of a section.",
-     "Write the outcome as if the plan works. He hedges less here than anywhere else, 0.4 per 1000 words, and the same slides give the reason: a paper speaks to what was done, a grant to what happens if everything goes as expected.",
+     "Fit the page limit by cutting content and leave the sentences whole. A reviewer sent back trimmed text that had become too vague to follow, and text that read as obnoxious in places and as terse fragments in others.",
+     "Every citation must exist and support the sentence it sits in. A reviewer caught an invented reference key and a misattributed claim in the agents' drafts.",
+     "Bullets are allowed, sparingly: \"tone down the bullets a bit. They don't have to go away completely, but it's overwhelming.\" \\textbf and \\emph run at 2.5 to 3 times the human-written papers' rate, so a bold lead phrase is human; bold inside a sentence is not. Grant-writing guidance says to bold the one standout sentence of a section.",
+     "Write the outcome as if the plan works. Human writing hedges less here than anywhere else, 0.4 per 1000 words, and grant-writing guidance gives the reason: a paper speaks to what was done, a grant to what happens if everything goes as expected.",
      "Give most sentences of the background a number or a reference. The slides make the point with the introduction of a funded $24M grant in which every sentence carries one.",
-     "Semicolons and mid-sentence colons stay rare: 1.2 and 2.1 per 1000 words in his proposals, 10.2 and 7.0 in the agents' proposal drafts. In the 41 passages he retyped as review suggestions on those drafts, semicolons went from 19 to 9 and em dashes from 5 to 2. A long aside between dashes goes in its own sentence or a footnote.",
-     "Keep \"we\" as the subject of the work. He writes it at 6.3 per 1000 words and the agents' drafts at a third of that. Leave out the significance words (critical, crucial, key, essential), which the agents use at six times his rate."
+     "Semicolons and mid-sentence colons stay rare: 1.2 and 2.1 per 1000 words in the human-written proposals, 10.2 and 7.0 in the agents' proposal drafts. In the 41 passages a reviewer retyped as review suggestions on those drafts, semicolons went from 19 to 9 and em dashes from 5 to 2. A long aside between dashes goes in its own sentence or a footnote.",
+     "Keep \"we\" as the subject of the work. Human writing has it at 6.3 per 1000 words and the agents' drafts at a third of that. Leave out the significance words (critical, crucial, key, essential), which the agents use at six times the human rate."
     ]
    }
   },
@@ -15402,10 +15402,10 @@
   "No em dash, no en dash. Period, colon, or commas.",
   "No status emoji, no arrow glyphs.",
   "None of the stock rhetorical frames: not just X, but Y, it isn't X, it's Y, no X, no Y.",
-  "Never overstate a magnitude. If the honest number is hundreds, do not write thousands; if it is months, do not write years. Sterling has corrected this by hand more than once, and it is the correction he makes most sharply.",
+  "Never overstate a magnitude. If the honest number is hundreds, do not write thousands; if it is months, do not write years. Reviewers have corrected this by hand more than once, and it is the sharpest correction in the corpus.",
   "Fix the text; do not narrate the fix inside the deliverable. No \"I've updated this to be clearer\", no draft markers, no meta-commentary about the writing process in the writing itself.",
   "Write for the audience. Rebutting a point the reader never raised is worse than saying nothing, and so is answering whoever last gave feedback.",
-  "Hedge when the thing is genuinely uncertain. Sterling hedges 31x more often than Claude does, and it is not padding: it reflects what he actually knows. \"Might be\", \"seems to\", \"not sure if\", \"probably\" are in his voice. Asserting a fact he would have hedged is a bigger error than verbosity."
+  "Hedge when the thing is genuinely uncertain. The human writing hedges 31x more often than Claude does, and it is not padding: it reflects what the writer actually knows. \"Might be\", \"seems to\", \"not sure if\", \"probably\" are in the human voice. Asserting a fact a careful writer would have hedged is a bigger error than verbosity."
  ],
  "one_question": [
   "Does this sound pretentious to someone who already knows what they are doing?"

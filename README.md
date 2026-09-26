@@ -2,16 +2,20 @@
 
 Strip the AI tells out of prose: the em dashes, the "it's not X, it's Y",
 the bolded preambles and the rest. A linter, a scorer and a prompt
-builder, all measured rather than guessed: 570k words Sterling Baird wrote
-on GitHub, contrasted against 1.35M words Claude wrote in the same
-threads, plus his Discussions posts, LinkedIn posts and comments,
+builder, all measured rather than guessed: 570k words of human replies,
+issues and reviews on GitHub, contrasted against 1.35M words Claude wrote
+in the same threads, plus Discussions posts, LinkedIn posts and comments,
 direct-message counts, sent-mail counts, first-author manuscripts and
 tutorial pages. The rates and intervals are measured; the thresholds,
 severities and budgets are declared in code and listed in this file, and a
 corpus rebuild changes the rules without anyone editing them.
 
-The bundled profile is his voice, so `score` and `prompt` pull toward how
-he writes. The `lint` tells are about Claude's prose and apply to anyone's.
+It is tuned per task: a GitHub reply, a bug report in someone else's repo,
+a Discussions post, an email, a short message, a LinkedIn post, a docs
+page, a paper or a proposal each get their own length budget, formatting
+rules and exemplars. The `lint` tells are about Claude's prose and apply
+to anyone's; `score` and `prompt` pull toward the human writing measured
+for that task.
 
 No dependencies. Python 3.9 or later. The optional `rewrite` command needs
 the `anthropic` package.
@@ -38,16 +42,16 @@ differently in each. `cringe-filter contexts` prints the table. Aliases are
 accepted (`dm`, `docs`, `bug-report`, `pr`, `grant`), and `--url` infers
 the context from where the text is going:
 
-| Context | What it is | His median | Budget |
+| Context | What it is | Human median | Budget |
 | --- | --- | ---: | ---: |
-| `github` | Reply in his own repos | 27 words | 110 |
+| `github` | Reply in your own repos | 27 words | 110 |
 | `discussion` | GitHub Discussions post | 51 | 297 |
 | `third-party` | Issue or comment in someone else's repo | 30 | 126 |
 | `email` | Sent mail | 57 | 170 |
 | `message` | DM, chat reply, comment on a post | 22 | 65 |
 | `linkedin` | LinkedIn post | 54 | 283 |
 | `tutorial` | Docs and teaching pages | 357 | 1500 |
-| `paper` | Scientific prose, his papers before 2023 | 359 per section | 6000 |
+| `paper` | Scientific prose, the human-written papers before 2023 | 359 per section | 6000 |
 | `proposal` | Grant and research proposals | 359 per section | 6000 |
 
 ## Commands
@@ -70,10 +74,10 @@ with more em dashes (261 to 329) and semicolons (371 to 470) than they
 had, so a review round can reopen what the last one closed.
 
 Each finding says what backs it. `[15.2x, CI 9.7-23.9]` means Claude used
-the pattern 15 times as often as Sterling did in that register, with the
+the pattern 15 times as often as the human writing did in that register, with the
 family-wise bootstrap interval. `[preventive, no corpus support]` means the
 pattern never separated the two authors there; those never rise above
-`info`. A rule the corpus contradicts (he uses "ensure", "leverage",
+`info`. A rule the corpus contradicts (human writing uses "ensure", "leverage",
 "comprehensive" and "streamline" more than Claude does) is switched off,
 per register, from the data. Suppress a real false positive inline:
 
@@ -92,7 +96,7 @@ key and inline math span survives. In LaTeX the suppression comment is
 `% cringe-filter: disable-line em-dash`.
 
 **`score`**: the voice filter as a measurement. Each feature is scored by
-the Poisson log-likelihood ratio of Claude's rate against his rate in the
+the Poisson log-likelihood ratio of Claude's rate against the human rate in the
 chosen context, and the sum is one style score with the features that
 produced it. The features overlap and the rates were measured on the same
 corpus, so the score is a ranking of what to fix, not a calibrated
@@ -105,11 +109,11 @@ cringe-filter score -c github --text "Not sure this is right. Could you check?"
 ```
 
 ```
-context: github (GitHub reply in his own repos)   words: 143   sentences: 7, longest 31
+context: github (GitHub reply in your own repos)   words: 143   sentences: 7, longest 31
 style score: +3.41 log-odds, reads like Claude (a ranking of what to fix, not a calibrated probability)
-length: 143 words; his median here is 27, p90 110, budget 110  [over budget]
-Burrows' Delta over the 150 most frequent words: 1.31 to his register, 1.12 to Claude (closer to Claude)
-feature                       n  yours/1k   his/1k  Claude/1k  log-odds
+length: 143 words; the human median here is 27, p90 110, budget 110  [over budget]
+Burrows' Delta over the 150 most frequent words: 1.31 to the human register, 1.12 to Claude (closer to Claude)
+feature                       n  yours/1k   human/1k  Claude/1k  log-odds
 bold runs                     4     28.0     2.93      21.47     +2.13
 hedges (might, maybe, ...)    0      0.0    10.58       0.33     +1.46
 ```
@@ -155,9 +159,9 @@ The prompt carries one priority written from the register's structure
 rates: make a person the subject, open few sentences on "The" or a
 number, carry plans in verbs, ask where the draft leaves a choice open,
 one idea per sentence, one point per paragraph. Each clause appears only
-where the register's own rates put it on his side by a clear margin.
+where the register's own rates put it on the human side by a clear margin.
 It is on by default: on 36 fresh held-out comments it moved every
-grammar judge toward him, at a cost of about 1.5 points of the source's
+grammar judge toward the human writing, at a cost of about 1.5 points of the source's
 content words. `--no-structure` leaves it out, and `build_prompt(...,
 structure=1)` rebuilds the wording that test used
 (`docs/voice/research/structure.md`).
@@ -169,7 +173,7 @@ features), and against any number, link, code span or path the rewrite
 dropped (`preserve.py`). The length budget is reported but does not
 trigger a revision by itself: in the held-out rewrite experiment every
 length-driven revision cut about 6% of the source's content words without
-moving any classifier toward him. Never more than two model calls:
+moving any classifier toward the human writing. Never more than two model calls:
 repeated self-revision degrades text that was already fine.
 
 ```bash
@@ -200,13 +204,13 @@ any remaining findings go to stderr.
 needs work, its line, and why, plus the flagged sentences to leave alone.
 Hand the spec and the draft to any frontier model with `prompt --minimal`.
 The "X, not Y" family and the "X is what did Y" cleft are judgment calls
-(his own uses are mostly instructions), so `--model` puts each one to a
+(the human uses are mostly instructions), so `--model` puts each one to a
 model as a single question: score from 0 to 100 how likely it is that Y
 was set up only to be knocked down. Hits under `--threshold` (default 30)
 move to "leave as written". Any OpenAI-compatible endpoint works: Ollama
 on localhost by default, so a private draft stays on the machine, or
 llama.cpp's `llama-server`, LM Studio or vLLM through `--endpoint`. A
-frontier model asked for this score separated Claude's contrasts from his;
+frontier model asked for this score separated Claude's contrasts from the human ones;
 the 1.5B and 3B models that fit on two CPU cores did worse
 (`docs/voice/research/local-models.md`). Without `--model` nothing is
 dropped and the editor decides.
@@ -280,22 +284,22 @@ from private text, and which word lists carry project vocabulary.
 
 - The reference for most contexts is Claude's GitHub prose, because that
   is the only place both authors wrote about the same work. Scoring an
-  email against it asks "does this read like the model or like his email",
+  email against it asks "does this read like the model or like human email",
   which is the useful question, but the two are not the same genre.
 - `paper` is scored against Claude's own scientific prose instead: the
   manuscripts claude[bot] wrote in the lab's repos (`references` in the
-  profile). With one of his papers and one of Claude's repositories held
-  out at a time, `score -c paper` reads 253 of 291 chunks of his earlier
-  papers as his and 17 as Claude's, and 66 of 79 chunks of Claude's
-  manuscripts as Claude's and 3 as his. Before, it read every one of
-  Claude's drafts of his sections as his.
+  profile). With one of the human-written papers and one of Claude's repositories held
+  out at a time, `score -c paper` reads 253 of 291 chunks of the earlier
+  human papers as human and 17 as Claude's, and 66 of 79 chunks of Claude's
+  manuscripts as Claude's and 3 as human. Before, it read every one of
+  Claude's drafts of human-written sections as human.
 - `proposal` is scored against the coding agents' proposals in the lab's
   public and private repos, 15k words, most of them the Copilot agent
   running Claude Opus models. Semicolons, mid-sentence colons,
-  significance words and "we" separate them from his proposals. Held out,
-  it reads 32 of 40 chunks of his as his and 38 of 49 of the agents' as
+  significance words and "we" separate them from the human-written proposals. Held out,
+  it reads 32 of 40 human chunks as human and 38 of 49 of the agents' as
   Claude's, against 33 and 34 with Claude's manuscripts as the reference.
-  His side rests on two proposals, 13k words, so treat the score as a hint
+  The human side rests on two proposals, 13k words, so treat the score as a hint
   and the card as the rules (`docs/voice/research/technical-writing.md`).
 - Small registers carry little signal for rare phrases. LinkedIn is 89
   posts; the linter falls back to the corpus-wide verdict when a register

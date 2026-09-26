@@ -1,7 +1,7 @@
 <!-- cringe-lint: disable-file -->
 # Scientific prose exemplars
 
-Paragraphs of his own from the three first-author preprints he wrote
+Paragraphs from three first-author preprints written
 before 2023 that are public on arXiv: the 5DOF grain boundary paper
 (2021), the materials informatics review (2022), and the CrabNet and
 DiSCoVeR e-print (2022). Papers are co-authored, and these were chosen

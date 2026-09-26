@@ -5,7 +5,7 @@ corpus as detexed text (scripts/voice/fetch_manuscripts.py). A .tex file
 handed to the linter as it is reads differently: `---` is an em dash in
 the PDF but not to a pattern looking for the glyph, a `%` comment reads
 as a sentence, and `\\cite{...}` keys count as words. On the .tex files
-of his first-author papers the linter found 15 em dashes, all typed as
+of the human first-author papers the linter found 15 em dashes, all typed as
 the glyph, against 96 once `---` counts, and reported commented-out
 paragraphs as long sentences (docs/voice/research/technical-writing.md).
 

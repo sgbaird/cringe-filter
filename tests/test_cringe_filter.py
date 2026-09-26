@@ -56,7 +56,7 @@ class Lint(unittest.TestCase):
         self.assertFalse(any(x["rule"] == "too-long" for x in lint_text(long, "tutorial")))
 
     def test_contra_rules_are_off(self):
-        # "ensure" runs higher in his prose than in Claude's; it must not fire.
+        # "ensure" runs higher in human prose than in Claude's; it must not fire.
         keys = {r.key for r in rules_for("github")}
         self.assertNotIn("ensure", keys)
         self.assertIn("em-dash", keys)
@@ -114,12 +114,12 @@ class Score(unittest.TestCase):
 class Prompt(unittest.TestCase):
     def test_contains_exemplar_and_label(self):
         system, user = build_prompt("Some text.", "github")
-        self.assertIn("Examples of Sterling", system)
+        self.assertIn("Examples of human writing", system)
         self.assertIn("em dash", system.lower())
         self.assertIn("Rewrite this draft", user)
         # Examples come before the rules, and the model prompt carries no
         # rates or intervals (those go in the evidence appendix).
-        self.assertLess(system.index("Examples of Sterling"), system.index("Priorities"))
+        self.assertLess(system.index("Examples of human writing"), system.index("Priorities"))
         self.assertNotRegex(system, r"CI \d")
         self.assertLess(len(system.split()), 1200)
         _, _, evidence = build_prompt("Some text.", "github", with_evidence=True)
@@ -471,7 +471,7 @@ class FormalContexts(unittest.TestCase):
         system, _ = build_prompt("We trained the model.", "paper")
         self.assertNotIn("Lead with the answer", system)
         self.assertNotIn("ask it as a question", system)
-        self.assertIn("## Examples of Sterling writing", system)
+        self.assertIn("## Examples of human writing", system)
 
 
 class Sync(unittest.TestCase):
@@ -548,7 +548,7 @@ class Contrast(unittest.TestCase):
 
 
 class AgentInstructions(unittest.TestCase):
-    """The rules Sterling and Kelvin Chow wrote for Copilot in 2025."""
+    """The rules written for Copilot in 2025."""
 
     def test_patterns(self):
         import re
@@ -579,7 +579,7 @@ class AgentInstructions(unittest.TestCase):
         self.assertEqual(r["youre-right"].evidence, "measured")
         self.assertEqual(r["change-trace"].evidence, "measured")
         self.assertEqual(r["absolutely-right"].evidence, "copilot")
-        # His: politeness, apologies, "successfully" and the spaced hyphen.
+        # Human: politeness, apologies, "successfully" and the spaced hyphen.
         for k in ("good-catch", "apology", "successfully", "spaced-hyphen"):
             self.assertNotIn(k, r)
 

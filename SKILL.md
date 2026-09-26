@@ -1,6 +1,6 @@
 ---
 name: cringe-filter
-description: Apply the measured AI-cringe filter and Sterling-voice filter to drafted prose before it is sent, posted or committed. Use for GitHub replies, Discussions posts, issues in other people's repos, email, short messages, LinkedIn posts, docs pages and scientific prose. Run as a final pass, not while drafting.
+description: Apply the measured AI-cringe filter and human-voice filter to drafted prose before it is sent, posted or committed. Use for GitHub replies, Discussions posts, issues in other people's repos, email, short messages, LinkedIn posts, docs pages and scientific prose. Run as a final pass, not while drafting.
 ---
 
 # cringe-filter
@@ -14,7 +14,7 @@ Requires `pip install cringe-filter` (or `uvx cringe-filter ...`).
 
 ## Procedure
 
-**1. Pick the context.** Where is the text going? `github` (his own
+**1. Pick the context.** Where is the text going? `github` (the human
 repos), `discussion`, `third-party` (someone else's repo), `email`,
 `message` (DM, chat, comment), `linkedin`, `tutorial`, `paper`,
 `proposal`. When you
@@ -58,30 +58,30 @@ cringe-filter lint --against previous.tex draft.tex
 cringe-filter prompt --context <context> --system-only
 ```
 
-That prints the filter: two real passages he wrote, the register's
+That prints the filter: two real human-written passages, the register's
 priorities, the measured tells in words and the register notes (the rates
 behind them are in `--evidence`). Read the passages first. Then rewrite
 your draft to match, keeping every fact, link and number. The five things
 the linter cannot check:
 
-- **Length.** His median GitHub reply is 28 words; Claude's is 636. Cut to
+- **Length.** Human median GitHub reply is 28 words; Claude's is 636. Cut to
   the shortest version that answers the question.
 - **Stance.** Hedge where the fact is uncertain ("might be", "not sure
-  if", "seems to") and nowhere else. He hedges 30 times more often than
+  if", "seems to") and nowhere else. Human writing hedges 30 times more often than
   Claude does and asks 12 times more questions.
 - **Audience.** Write for the reader. Delete defensive clauses about
   points nobody raised, replies to whoever last gave feedback, and any
   narration of the editing itself.
-- **Small words.** He talks to the people in a thread ("we could", "it
+- **Small words.** Human replies talk to the people in a thread ("we could", "it
   might be", "can you", "this"); Claude reports to them in noun phrases.
-  A held-out test found rewrites that removed every tell and matched his
+  A held-out test found rewrites that removed every tell and matched the human
   sentence length still read as Claude to a function-word model, because
-  "we", "be" and "could" stayed at Claude's rates. The prompt names his
+  "we", "be" and "could" stayed at Claude's rates. The prompt names the human
   small words for each context; use them where they fit.
 - **Sentence skeleton.** The same test, rerun with a parser, found the
   rewrites fixed the paragraphs and kept Claude's sentences: a thing as
   the subject ("The parser drops..."), a second idea packed in with a
-  colon, dash or parenthesis. His subject is usually a person ("I think",
+  colon, dash or parenthesis. The human subject is usually a person ("I think",
   "we could", "can you"). Rebuild the sentences, not just the words, but
   do not turn a report into one "I did X" sentence after another
   (`docs/voice/research/structure.md`).
@@ -94,17 +94,17 @@ that was already fine.
 In a manuscript or proposal (`paper`, `proposal`, or any `.tex` file) the
 score compares against Claude's own scientific prose (for a proposal, the
 agents' proposals in the lab's repos), and the features that separate them
-are "we" (Claude writes a fifth of his), colons and
-semicolons carrying a second idea (four to five times his), "critical" and
+are "we" (Claude writes a fifth as many), colons and
+semicolons carrying a second idea (four to five times the human rate), "critical" and
 "key" (four times), and no hedge at all. The lab's corrections to Claude's
 manuscripts were mostly not about words: claim only what was done, write
 for the reader rather than as a reply to whoever asked for the edit, keep
 issue and PR numbers out, define every abbreviation, and keep what a human
-wrote intact. In proposals he adds: name the method plainly rather than by
+wrote intact. In proposals, add: name the method plainly rather than by
 metaphor, meet the page limit by cutting content rather than compressing
 sentences, and check that every citation exists. Leave long sentences long. Rewrite a manuscript draft only
 when `score -c paper` reads it as Claude's: on drafts that already read as
-his, the paper prompt doubled "we" and removed his semicolons
+human, the paper prompt doubled "we" and removed the human semicolons
 (`docs/voice/research/technical-writing.md`).
 
 **5. Report what changed** in one sentence, outside the deliverable.
@@ -113,4 +113,4 @@ his, the paper prompt doubled "we" and removed his semicolons
 
 Code, commit messages, config, and throwaway notes. A voice pass on a
 one-line status update costs more than it saves. Detector evasion is not
-the goal; sounding like him is.
+the goal; sounding like the human writing is.
