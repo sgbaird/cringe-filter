@@ -1,14 +1,14 @@
 <!-- cringe-lint: disable-file -->
 # Short-message exemplars
 
-Comments he left on other people's LinkedIn posts. This is the
+Comments left on other people's LinkedIn posts. This is the
 register for a direct message, a chat reply, or any one-or-two
 sentence note to a person: 757 such documents were measured and
-his median is 21 words.
+the human median is 21 words.
 
 What to notice: no formatting of any kind, no em dashes, a
-question in a large fraction of them, and the hedging he drops in
-a post comes back here. He addresses the person, often by name.
+question in a large fraction of them, and the hedging that drops out of
+a post comes back here. The writer addresses the person, often by name.
 
 12 passages, 466 words. All public.
 

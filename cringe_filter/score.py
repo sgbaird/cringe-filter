@@ -1,11 +1,11 @@
-"""The voice filter as a measurement: does this read like him, here?
+"""The voice filter as a measurement: does this read like the human writing, here?
 
-For each feature the profile carries two rates per 1000 words: Sterling's
+For each feature the profile carries two rates per 1000 words: the human
 in the requested register and Claude's in its GitHub prose (the reference
 the whole profile is built against). A draft of N words with n occurrences
 of the feature is scored by the Poisson log-likelihood ratio of those two
 rates, and the per-feature ratios add up to one log-odds figure: positive
-reads like Claude, negative reads like him. Features are markers of
+reads like Claude, negative reads like the human writing. Features are markers of
 stance and formatting plus every candidate tell that separated the two
 authors after the family-wise correction, in either direction.
 
@@ -96,7 +96,7 @@ def score_text(text, context="any"):
     if total > 2:
         verdict = "reads like Claude"
     elif total < -2:
-        verdict = "reads like Sterling"
+        verdict = "reads human"
     else:
         verdict = "in between"
     feats.sort(key=lambda f: -abs(f["log_odds"]))
@@ -118,7 +118,7 @@ def score_text(text, context="any"):
         "candidate_rates_measured": bool(reg.get("candidate_rates_measured", True)),
         "verdict": verdict, "features": feats, "delta": delta,
         "note": ("Style score: Poisson log-likelihood ratio of Claude's GitHub "
-                 "rates over Sterling's rates in this register, summed over "
+                 "rates over the human rates in this register, summed over "
                  "features. Positive reads like Claude. Features overlap, so "
                  "this is a ranking of what to fix, not a calibrated "
                  "probability, and not a detector."),
@@ -142,16 +142,16 @@ def structure_features(text, reg, ref):
     paragraphs, and a count per sentence (modals, colons) as a Poisson one,
     the same way the word markers are. Registers without structure rates
     (email, tutorials, manuscripts) score nothing here."""
-    his = (reg.get("structure") or {}).get("rates")
+    human = (reg.get("structure") or {}).get("rates")
     cl = (ref.get("structure") or {}).get("rates")
-    if not his or not cl:
+    if not human or not cl:
         return []
     counts = shape.measure(text)
     out = []
     for key in STRUCTURE:
         den_key, label = shape.FEATURES[key]
         d = counts.get(den_key, 0)
-        s_rate, c_rate = his.get(key), cl.get(key)
+        s_rate, c_rate = human.get(key), cl.get(key)
         if not d or s_rate is None or c_rate is None:
             continue
         n = counts.get(key, 0)
@@ -181,7 +181,7 @@ def burrows_delta(cleaned, reg, ref, mfw):
     Each of the most frequent words is z-scored against the pooled
     per-document spread, and Delta is the mean absolute z difference. A
     smaller Delta to the register than to Claude means the draft's
-    function-word profile sits nearer his. Short drafts are noisy here;
+    function-word profile sits nearer the human one. Short drafts are noisy here;
     read the margin, not the third decimal.
     """
     if not mfw or not reg.get("mfw_mean") or not ref.get("mfw_mean"):
@@ -218,16 +218,16 @@ def format_score(r, top=12):
     L = r.get("length")
     if L:
         flag = "  [over budget]" if L["over_budget"] else ""
-        lines.append(f"length: {r['words']} words; his median here is "
+        lines.append(f"length: {r['words']} words; the human median here is "
                      f"{L['median_words']}, p90 {L['p90_words']}, budget "
                      f"{L['budget_words']}{flag}")
     d = r.get("delta")
     if d:
-        who = "him" if d["closer_to"] == "register" else "Claude"
+        who = "the human writing" if d["closer_to"] == "register" else "Claude"
         lines.append(f"Burrows' Delta over the {d['n_features']} most frequent "
-                     f"words: {d['to_register']:.2f} to his register, "
+                     f"words: {d['to_register']:.2f} to the human register, "
                      f"{d['to_claude']:.2f} to Claude (closer to {who})")
-    lines.append(f"{'feature':44s}{'n':>4s}{'yours/1k':>10s}{'his/1k':>9s}"
+    lines.append(f"{'feature':44s}{'n':>4s}{'yours/1k':>10s}{'human/1k':>9s}"
                  f"{'Claude/1k':>11s}{'log-odds':>10s}")
     lines.append("(per 1000 words; structure rows per 1000 sentences or prose paragraphs)")
     for f in r["features"][:top]:

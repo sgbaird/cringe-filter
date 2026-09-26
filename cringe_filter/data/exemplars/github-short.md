@@ -1,7 +1,7 @@
 <!-- cringe-lint: disable-file -->
 # Exemplars: github-short
 
-Real passages Sterling wrote, selected because their surface
+Real human-written passages, selected because their surface
 statistics sit near the median for this register. Showing these
 works better than describing them: in a 100-author study, directed
 linguistic guidance generally performed worse than plain exemplar
