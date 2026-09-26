@@ -3,16 +3,16 @@
 Every rule names the candidate phrase it was measured as, and at lint time
 the verdict for the requested context is read from the profile:
 
-    measured    Claude's rate over the human rate is significantly above 1 in
+    measured    Claude's rate over the writer's rate is significantly above 1 in
                 this register (family-wise bootstrap interval excludes 1)
     preventive  no support in this register's data; kept because the
                 registers the corpus covers thinly are where a model
                 reaches for it; never rises above info severity
-    contra      the human writing uses it as much or more; the rule is switched off
+    contra      the writer uses it as much or more; the rule is switched off
 
 The verdicts come from the register's own measurements when it has any
 signal for the phrase, and from the whole GitHub corpus otherwise, so a
-word that is human in manuscripts and Claude's in replies is treated
+word that is the writer's in manuscripts and Claude's in replies is treated
 differently in the two contexts without anyone hand-listing exceptions.
 """
 from __future__ import annotations
@@ -24,16 +24,16 @@ from . import latex
 from .bundle import profile
 from .registers import resolve
 
-# Below this ratio the point estimate says human writing uses it more than Claude,
+# Below this ratio the point estimate says the writer uses it more than Claude,
 # and there is no evidence for the rule even before significance is asked.
 CONTRA_BELOW = 0.8
-# Formatting rules only apply where the human rate for the marker is low;
-# above this rate the structure is part of how human writing handles that register
+# Formatting rules only apply where the writer's rate for the marker is low;
+# above this rate the structure is part of how the writer handles that register
 # (headers in tutorials, bullets in your own repos, template headers in a
 # bug report).
 FORMAT_OWN_RATE_MAX = 3.0
 
-# Formatting rule -> the mechanical marker that carries the human rate.
+# Formatting rule -> the mechanical marker that carries the writer's rate.
 FORMAT_MARKER = {"bold-run": "bold_md_per_1k", "bold-lead-in": "bold_md_per_1k",
                  "md-header": "header_md_per_1k",
                  "bullet-line": "bullet_md_per_1k", "md-table": "table_md_per_1k",
@@ -69,9 +69,9 @@ CONTRAST = {
 }
 
 # Two patterns from the ME-EN-372 course repo's cringe filter that also
-# separate Claude from the human writing in the GitHub threads (contrast_family.py,
+# separate Claude from the writer in the GitHub threads (contrast_family.py,
 # COURSE). The others in that filter do not transfer: "in other words,"
-# and "don't worry" are human in replies, whatever they are on a course page.
+# and "don't worry" are the writer's in replies, whatever they are on a course page.
 COURSE = {
     "heading then bold lead-in": r"^#{1,6} [^\n]+\n+\*\*[^*\n]{3,60}\*\*",
     "invented precision": (r"\b(?:takes? (?:about|roughly|only|just)?\s*(?:a|one|two|three|five|ten|\d+) (?:minute|second|hour)s?|"
@@ -133,7 +133,7 @@ SPECS = [
     Spec("arrow-glyph", "→", "glyph", "warn",
          "Arrow glyph. Write the relation as words.", "arrow glyph"),
 
-    # Not in proposals: human proposals use \textbf and \emph at 2.5 to 3
+    # Not in proposals: the writer's proposals use \textbf and \emph at 2.5 to 3
     # times the papers' rate, and grant-writing guidance says to bold the
     # standout sentence of a section (registers.md, Proposal).
     Spec("bold-run", r"\*\*[^*\n]{1,80}\*\*", "formatting", "warn",
@@ -151,7 +151,7 @@ SPECS = [
     Spec("md-header", r"^#{2,3} ", "formatting", "warn",
          "Header in a short reply.", "H2/H3 header"),
     Spec("bullet-line", r"^[ \t]*[-*+] ", "formatting", "info",
-         "Bullet list where human writing uses prose.", "bullet line"),
+         "Bullet list where the writer uses prose.", "bullet line"),
     Spec("bold-lead-in", r"^[ \t]*[-*] \*\*[^*\n]{1,60}\*\*:?", "formatting",
          "warn", "Bold lead-in bullet ('- **Label:** text').",
          "bold lead-in bullet"),
@@ -175,7 +175,7 @@ SPECS = [
          "not just X but Y"),
     # The corrective contrast, measured as a family in the same threads
     # (scripts/voice/contrast_family.py; patterns must stay identical).
-    # Human writing has "X, not Y" too, mostly as an instruction ("an assert, not
+    # The writer has "X, not Y" too, mostly as an instruction ("an assert, not
     # an if"); Claude writes it to correct a reading nobody offered.
     Spec("x-not-y", CONTRAST["X, not Y"], "frame", "warn",
          "The 'X, not Y' correction. Keep it only if Y is something the "
@@ -375,10 +375,10 @@ def verdict(spec, ctx):
     else:
         return copilot_verdict(spec)
     if lean is not None and lean <= CONTRA_BELOW:
-        # Significantly human: off, whatever Copilot does. A lean the human way
+        # Significantly the writer's: off, whatever Copilot does. A lean the writer's way
         # that the interval cannot tell from 1 lets Copilot's evidence
-        # decide ("production-ready": 7 uses each for the human writing and Claude,
-        # 8.5 times the human rate for Copilot).
+        # decide ("production-ready": 7 uses each for the writer and Claude,
+        # 8.5 times the writer's rate for Copilot).
         if not (ci and ci[1] < 1):
             cv = copilot_verdict(spec)
             if cv[0] == "copilot":
@@ -406,7 +406,7 @@ def severity_overrides(ctx):
 
     A rule's declared severity is a starting point; where the corpus has
     been linted document by document (scripts/voice/calibrate_linter.py),
-    the measured false-positive rate on the human writing decides,
+    the measured false-positive rate on the writer's own text decides,
     and the profile records the result per context."""
     return (profile().get("severity_overrides") or {}).get(ctx, {})
 
@@ -518,7 +518,7 @@ def lint_text(text, context="any", path="<text>", budget_only=False):
             "severity": overrides.get("too-long", "warn"),
             "family": "length", "evidence": "measured", "lean": None,
             "ci_familywise": None,
-            "message": (f"{words} words. Human median {reg['label'].lower()} "
+            "message": (f"{words} words. The writer's median {reg['label'].lower()} "
                         f"is {reg['doc_words_median']} words and the budget "
                         f"is {budget}."),
             "snippet": ""})
@@ -536,7 +536,7 @@ def lint_text(text, context="any", path="<text>", budget_only=False):
                 "rule": "long-sentence",
                 "severity": overrides.get("long-sentence", "info"), "family": "length",
                 "evidence": "measured", "lean": None, "ci_familywise": None,
-                "message": f"{n}-word sentence; the human p90 in this register is "
+                "message": f"{n}-word sentence; the writer's p90 in this register is "
                            f"{sent_p90}.",
                 "snippet": " ".join(s.split())[:110]})
 

@@ -14,7 +14,7 @@ Requires `pip install cringe-filter` (or `uvx cringe-filter ...`).
 
 ## Procedure
 
-**1. Pick the context.** Where is the text going? `github` (the human
+**1. Pick the context.** Where is the text going? `github` (your own
 repos), `discussion`, `third-party` (someone else's repo), `email`,
 `message` (DM, chat, comment), `linkedin`, `tutorial`, `paper`,
 `proposal`. When you
@@ -64,24 +64,24 @@ behind them are in `--evidence`). Read the passages first. Then rewrite
 your draft to match, keeping every fact, link and number. The five things
 the linter cannot check:
 
-- **Length.** Human median GitHub reply is 28 words; Claude's is 636. Cut to
+- **Length.** The writer's median GitHub reply is 28 words; Claude's is 636. Cut to
   the shortest version that answers the question.
 - **Stance.** Hedge where the fact is uncertain ("might be", "not sure
-  if", "seems to") and nowhere else. Human writing hedges 30 times more often than
+  if", "seems to") and nowhere else. The writer hedges 30 times more often than
   Claude does and asks 12 times more questions.
 - **Audience.** Write for the reader. Delete defensive clauses about
   points nobody raised, replies to whoever last gave feedback, and any
   narration of the editing itself.
-- **Small words.** Human replies talk to the people in a thread ("we could", "it
+- **Small words.** The writer's replies talk to the people in a thread ("we could", "it
   might be", "can you", "this"); Claude reports to them in noun phrases.
-  A held-out test found rewrites that removed every tell and matched the human
+  A held-out test found rewrites that removed every tell and matched the writer
   sentence length still read as Claude to a function-word model, because
-  "we", "be" and "could" stayed at Claude's rates. The prompt names the human
+  "we", "be" and "could" stayed at Claude's rates. The prompt names the writer's
   small words for each context; use them where they fit.
 - **Sentence skeleton.** The same test, rerun with a parser, found the
   rewrites fixed the paragraphs and kept Claude's sentences: a thing as
   the subject ("The parser drops..."), a second idea packed in with a
-  colon, dash or parenthesis. The human subject is usually a person ("I think",
+  colon, dash or parenthesis. The writer's subject is usually a person ("I think",
   "we could", "can you"). Rebuild the sentences, not just the words, but
   do not turn a report into one "I did X" sentence after another
   (`docs/voice/research/structure.md`).
@@ -95,7 +95,7 @@ In a manuscript or proposal (`paper`, `proposal`, or any `.tex` file) the
 score compares against Claude's own scientific prose (for a proposal, the
 agents' proposals in the lab's repos), and the features that separate them
 are "we" (Claude writes a fifth as many), colons and
-semicolons carrying a second idea (four to five times the human rate), "critical" and
+semicolons carrying a second idea (four to five times the writer's rate), "critical" and
 "key" (four times), and no hedge at all. The lab's corrections to Claude's
 manuscripts were mostly not about words: claim only what was done, write
 for the reader rather than as a reply to whoever asked for the edit, keep
@@ -104,7 +104,7 @@ wrote intact. In proposals, add: name the method plainly rather than by
 metaphor, meet the page limit by cutting content rather than compressing
 sentences, and check that every citation exists. Leave long sentences long. Rewrite a manuscript draft only
 when `score -c paper` reads it as Claude's: on drafts that already read as
-human, the paper prompt doubled "we" and removed the human semicolons
+the writer's, the paper prompt doubled "we" and removed the writer's semicolons
 (`docs/voice/research/technical-writing.md`).
 
 **5. Report what changed** in one sentence, outside the deliverable.
@@ -113,4 +113,4 @@ human, the paper prompt doubled "we" and removed the human semicolons
 
 Code, commit messages, config, and throwaway notes. A voice pass on a
 one-line status update costs more than it saves. Detector evasion is not
-the goal; sounding like the human writing is.
+the goal; sounding like the writer is.

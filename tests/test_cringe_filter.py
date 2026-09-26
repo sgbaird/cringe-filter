@@ -56,7 +56,7 @@ class Lint(unittest.TestCase):
         self.assertFalse(any(x["rule"] == "too-long" for x in lint_text(long, "tutorial")))
 
     def test_contra_rules_are_off(self):
-        # "ensure" runs higher in human prose than in Claude's; it must not fire.
+        # "ensure" runs higher in the writer's prose than in Claude's; it must not fire.
         keys = {r.key for r in rules_for("github")}
         self.assertNotIn("ensure", keys)
         self.assertIn("em-dash", keys)
@@ -579,7 +579,7 @@ class AgentInstructions(unittest.TestCase):
         self.assertEqual(r["youre-right"].evidence, "measured")
         self.assertEqual(r["change-trace"].evidence, "measured")
         self.assertEqual(r["absolutely-right"].evidence, "copilot")
-        # Human: politeness, apologies, "successfully" and the spaced hyphen.
+        # The writer's: politeness, apologies, "successfully" and the spaced hyphen.
         for k in ("good-catch", "apology", "successfully", "spaced-hyphen"):
             self.assertNotIn(k, r)
 

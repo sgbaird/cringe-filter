@@ -3,13 +3,13 @@
 The parsed comparison of the two writers (scripts/voice/structure.py,
 docs/voice/research/structure.md) found that the gap is not only in which
 words each uses but in how the sentences are built. Even in plain
-statements, with requests and questions set aside, the human subject is
-usually a person ("I", "we", "you") and human plans sit in modal and
+statements, with requests and questions set aside, the writer's subject is
+usually a person ("I", "we", "you") and the writer's plans sit in modal and
 infinitive verbs ("we could try", "want to check"); Claude's subject is
 usually a noun phrase ("The parser drops ..."), and it packs a second idea
 into the same sentence with a colon, a dash, a semicolon, an appositive or
 a parenthesis. And half of Claude's words sit in lists, tables, headers
-and checkboxes, where nine tenths of the human ones are prose.
+and checkboxes, where nine tenths of the writer's are prose.
 
 This module counts the parts of that a regular expression can see, so the
 toolset stays free of dependencies. Each measure was checked against the
