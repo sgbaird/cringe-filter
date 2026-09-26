@@ -4,7 +4,7 @@
 Comments left on other people's LinkedIn posts. This is the
 register for a direct message, a chat reply, or any one-or-two
 sentence note to a person: 757 such documents were measured and
-the human median is 21 words.
+the writer's median is 21 words.
 
 What to notice: no formatting of any kind, no em dashes, a
 question in a large fraction of them, and the hedging that drops out of
