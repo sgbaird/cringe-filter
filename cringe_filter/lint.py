@@ -467,6 +467,20 @@ def maskable(text, is_latex=False):
     return text
 
 
+def directives(text, is_latex=False):
+    """The text the suppression comments are read from.
+
+    Fenced and inline code are blanked first, so a page that shows the
+    syntax (this package's README does) does not switch itself off.
+    LaTeX keeps its text: there the comments are the directives."""
+    if is_latex:
+        return text
+
+    def blank(m):
+        return re.sub(r"[^\n]", " ", m.group(0))
+    return INLINE_CODE.sub(blank, CODE_BLOCK.sub(blank, text))
+
+
 def line_of(text, idx):
     return text.count("\n", 0, idx) + 1
 
@@ -485,12 +499,14 @@ def suppressions(text):
 
 def lint_text(text, context="any", path="<text>", budget_only=False):
     """Findings for one document: list of dicts, errors first."""
-    if DISABLE_FILE.search(text):
+    is_latex = latex.looks_like_latex(text, path)
+    live = directives(text, is_latex)
+    if DISABLE_FILE.search(live):
         return []
     ctx = resolve(context)
     reg = profile()["registers"][ctx]
-    masked = maskable(text, latex.looks_like_latex(text, path))
-    supp = suppressions(text)
+    masked = maskable(text, is_latex)
+    supp = suppressions(live)
     findings = []
 
     if not budget_only:

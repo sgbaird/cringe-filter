@@ -50,6 +50,24 @@ class Lint(unittest.TestCase):
         text = "<!-- cringe-lint: disable-file -->\nA thing — another."
         self.assertEqual(lint_text(text, "github"), [])
 
+    def test_suppression_shown_in_code_does_not_apply(self):
+        # A README that documents the syntax must still be linted.
+        text = ("Skip a file with:\n\n```markdown\n"
+                "<!-- cringe-filter: disable-file -->\n```\n\nA thing — another.")
+        self.assertTrue(any(x["rule"] == "em-dash" for x in lint_text(text, "tutorial")))
+        text = "Use `<!-- cringe-filter: disable-line -->`. A thing — another."
+        self.assertTrue(any(x["rule"] == "em-dash" for x in lint_text(text, "tutorial")))
+        text = "A thing --- another. % cringe-filter: disable-line em-dash"
+        self.assertFalse(any(x["rule"] == "em-dash"
+                             for x in lint_text(text, "paper", "draft.tex")))
+
+    def test_readme_passes_its_own_linter(self):
+        root = os.path.dirname(HERE)
+        with open(os.path.join(root, "README.md"), encoding="utf-8") as f:
+            found = lint_text(f.read(), "tutorial", "README.md")
+        self.assertTrue(found, "the README should be linted, not skipped")
+        self.assertEqual([x for x in found if x["severity"] != "info"], [])
+
     def test_length_budget(self):
         long = " ".join(["word"] * 400) + "."
         self.assertTrue(any(x["rule"] == "too-long" for x in lint_text(long, "github")))
