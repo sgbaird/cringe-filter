@@ -631,5 +631,153 @@ class Audit(unittest.TestCase):
         self.assertIn("## Leave as written", spec)
 
 
+class Pick(unittest.TestCase):
+    def test_url_then_name_then_file(self):
+        from cringe_filter.registers import pick
+        self.assertEqual(pick("email", "https://github.com/pytorch/pytorch/issues/1"),
+                         "third-party")
+        self.assertEqual(pick(None, None, "draft.tex"), "paper")
+        self.assertEqual(pick("github", None, "draft.tex"), "github")
+        self.assertEqual(pick("dm"), "message")
+        self.assertEqual(pick(), "any")
+
+
+try:
+    import mcp  # noqa: F401
+    HAS_MCP = True
+except ImportError:  # Python 3.9, or the mcp extra not installed
+    HAS_MCP = False
+
+
+@unittest.skipUnless(HAS_MCP, "needs the mcp package (Python 3.10+)")
+class Server(unittest.TestCase):
+    """The MCP server, through the SDK's client: in process, and once over
+    stdio the way Claude Code or Claude Desktop starts it."""
+
+    def call(self, fn):
+        import asyncio
+        from mcp import Client
+        from cringe_filter.server import build_server
+
+        async def run():
+            async with Client(build_server()) as client:
+                return await fn(client)
+        return asyncio.run(run())
+
+    def test_lists_tools_prompts_and_resources(self):
+        async def fn(c):
+            return (await c.list_tools(), await c.list_prompts(),
+                    await c.list_resource_templates(), c.instructions)
+        tools, prompts, templates, instructions = self.call(fn)
+        self.assertEqual({t.name for t in tools.tools},
+                         {"lint", "score", "filter_prompt", "audit", "contexts"})
+        self.assertTrue(all(t.annotations.read_only_hint for t in tools.tools))
+        self.assertEqual({p.name for p in prompts.prompts}, {"rewrite", "minimal_edit"})
+        self.assertEqual({t.uri_template for t in templates.resource_templates},
+                         {"cringe-filter://filter/{context}",
+                          "cringe-filter://profile/{context}"})
+        self.assertIn("lint", instructions)
+
+    def test_lint_reports_text_and_findings(self):
+        async def fn(c):
+            return (await c.call_tool("lint", {"text": "A thing — another.",
+                                               "context": "github"}),
+                    await c.call_tool("lint", {"text": "A thing — another.",
+                                               "against": "Old — text."}),
+                    await c.call_tool("lint", {"text": "Fine.", "filename": "a.tex"}))
+        r, against, tex = self.call(fn)
+        self.assertFalse(r.is_error)
+        self.assertIn("error em-dash", r.content[0].text)
+        self.assertEqual(r.structured_content["context"], "github")
+        self.assertGreaterEqual(r.structured_content["errors"], 1)
+        self.assertIn("em-dash", {f["rule"] for f in r.structured_content["findings"]})
+        # The dash was already in the old version, so it is not reported.
+        self.assertNotIn("em-dash", {f["rule"] for f in against.structured_content["findings"]})
+        self.assertEqual(tex.structured_content["context"], "paper")
+
+    def test_score_trims_to_the_top_features(self):
+        async def fn(c):
+            return await c.call_tool("score", {
+                "text": CLAUDE_ISH, "top": 3,
+                "url": "https://github.com/pytorch/pytorch/issues/1"})
+        r = self.call(fn)
+        s = r.structured_content
+        self.assertEqual(s["context"], "third-party")
+        self.assertEqual(len(s["features"]), 3)
+        self.assertGreater(s["n_features"], 3)
+        self.assertGreater(s["log_odds"], 0)
+        self.assertIn("style score", r.content[0].text)
+
+    def test_filter_prompt(self):
+        async def fn(c):
+            return (await c.call_tool("filter_prompt", {"context": "linkedin"}),
+                    await c.call_tool("filter_prompt", {"context": "github",
+                                                        "evidence": True}),
+                    await c.call_tool("filter_prompt", {"context": "paper",
+                                                        "text": "A thing — another.",
+                                                        "minimal": True}),
+                    await c.call_tool("filter_prompt", {"minimal": True}))
+        plain, evidence, minimal, missing = self.call(fn)
+        self.assertIn("LinkedIn post", plain.content[0].text)
+        self.assertNotIn("## Evidence", plain.content[0].text)
+        self.assertIn("## Evidence for github", evidence.content[0].text)
+        self.assertIn("em-dash", minimal.content[0].text)
+        self.assertTrue(missing.is_error)
+        self.assertIn("needs the draft", missing.content[0].text)
+
+    def test_unknown_context_is_reported_to_the_caller(self):
+        async def fn(c):
+            return await c.call_tool("score", {"text": "Hi.", "context": "nonsense"})
+        r = self.call(fn)
+        self.assertTrue(r.is_error)
+        self.assertIn("unknown context 'nonsense'", r.content[0].text)
+
+    def test_audit_judges_with_the_named_model(self):
+        import cringe_filter.audit as a
+        real = a._chat
+        a._chat = lambda model, system, user, endpoint=None: "80"
+        try:
+            r = self.call(lambda c: c.call_tool("audit", {
+                "text": "The bottleneck is the parser, not the network.\n",
+                "context": "github", "model": "stub"}))
+        finally:
+            a._chat = real
+        self.assertIn("stub scored the contrast 80/100", r.content[0].text)
+
+    def test_prompts_and_resources(self):
+        from mcp import MCPError
+
+        async def fn(c):
+            rw = await c.get_prompt("rewrite", {"draft": "Hello — there.",
+                                                "context": "dm"})
+            me = await c.get_prompt("minimal_edit", {"draft": "Hello — there."})
+            card = await c.read_resource("cringe-filter://filter/linkedin")
+            prof = await c.read_resource("cringe-filter://profile/email")
+            with self.assertRaises(MCPError):
+                await c.read_resource("cringe-filter://profile/nonsense")
+            return rw, me, card, prof
+        rw, me, card, prof = self.call(fn)
+        self.assertTrue(rw.messages[0].content.text.endswith("## Draft\n\nHello — there."))
+        self.assertIn("em-dash", me.messages[0].content.text)
+        self.assertIn("LinkedIn post", card.contents[0].text)
+        self.assertIn("label", json.loads(prof.contents[0].text))
+
+    def test_stdio(self):
+        import asyncio
+        from mcp import Client, StdioServerParameters
+        root = os.path.dirname(HERE)
+        params = StdioServerParameters(
+            command=sys.executable, args=["-m", "cringe_filter", "mcp"], cwd=root,
+            env={**os.environ, "PYTHONPATH": root})
+
+        async def run():
+            async with Client(params) as c:
+                return (await c.call_tool("contexts", {}),
+                        await c.call_tool("lint", {"text": "A thing — another."}))
+        contexts_, lint = asyncio.run(run())
+        self.assertIn("github", {r["context"] for r in contexts_.structured_content["contexts"]})
+        self.assertIn("em-dash", lint.content[0].text)
+
+
 if __name__ == "__main__":
     unittest.main()

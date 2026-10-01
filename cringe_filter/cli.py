@@ -1,4 +1,4 @@
-"""Command line: python -m cringe_filter <lint|score|prompt|rewrite|audit|instructions|contexts|profile>."""
+"""Command line: python -m cringe_filter <lint|score|prompt|rewrite|audit|instructions|contexts|profile|mcp>."""
 import argparse
 import json
 import sys
@@ -7,7 +7,7 @@ from . import __version__
 from .bundle import profile, reference
 from .lint import format_finding, introduced, lint_text
 from .prompt import build_minimal_prompt, build_prompt, render
-from .registers import contexts, infer_context, resolve
+from .registers import contexts, pick, resolve
 from .score import format_score, score_text
 
 
@@ -22,13 +22,8 @@ def read_input(args):
 
 
 def pick_context(args, path=None):
-    if getattr(args, "url", None):
-        return infer_context(args.url)
-    if not getattr(args, "context", None):
-        path = path or getattr(args, "file", None)
-        if path and str(path).lower().endswith((".tex", ".ltx")):
-            return resolve("paper")
-    return resolve(getattr(args, "context", None) or "any")
+    return pick(getattr(args, "context", None), getattr(args, "url", None),
+                path or getattr(args, "file", None))
 
 
 def add_structure(sp):
@@ -259,6 +254,12 @@ def cmd_profile(args):
     return 0
 
 
+def cmd_mcp(args):
+    from .server import serve
+    serve(args.transport, args.host, args.port)
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         prog="cringe-filter",
@@ -346,6 +347,19 @@ def main(argv=None):
     sp.add_argument("--context", "-c", default=None)
     sp.add_argument("--json", action="store_true")
     sp.set_defaults(fn=cmd_profile)
+
+    sp = sub.add_parser("mcp", help="serve the tools to MCP clients (needs the "
+                                    "mcp extra)")
+    sp.add_argument("--transport", choices=["stdio", "streamable-http"],
+                    default="stdio",
+                    help="stdio for a client that starts the server itself; "
+                         "streamable-http to serve it at /mcp")
+    sp.add_argument("--host", default="127.0.0.1",
+                    help="address to listen on with streamable-http; "
+                         "0.0.0.0 in a container")
+    sp.add_argument("--port", type=int, default=None,
+                    help="port for streamable-http (default $PORT, or 8000)")
+    sp.set_defaults(fn=cmd_mcp)
 
     args = ap.parse_args(argv)
     try:
