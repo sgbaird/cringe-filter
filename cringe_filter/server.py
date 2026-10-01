@@ -14,8 +14,9 @@ and only at the endpoint the server's environment sets
 an address of its choosing.
 
 Lint and score answer with the report the CLI prints, since SKILL.md
-teaches an agent to read that form and it costs a third of the tokens of
-the JSON. The JSON comes along as structured content for programs.
+teaches an agent to read that form, and it runs a third (lint) to half
+(score) the length of the JSON. The JSON comes along as structured
+content for programs.
 
 Needs the mcp package, which needs Python 3.10 or later:
 pip install 'cringe-filter[mcp]'.

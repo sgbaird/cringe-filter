@@ -284,9 +284,9 @@ client's own model to edit, and the resources
 serve a context's filter and its measured rates.
 
 Each tool takes `context` (a name or alias) or `url`, as the commands do.
-`lint` and `score` answer with the report the command prints, which costs
-the model a third of the tokens the JSON would, and carry the JSON as
-structured content for programs. There is no rewrite tool, for the reason
+`lint` and `score` answer with the report the command prints, a third to
+half the length of the JSON, and carry the JSON as structured content for
+programs. There is no rewrite tool, for the reason
 in the section above: the agent calling the server is the model. `audit`
 consults a model only when the call names one, at the endpoint
 `CRINGE_FILTER_LLM_ENDPOINT` sets where the server runs. The server also
