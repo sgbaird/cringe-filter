@@ -205,8 +205,15 @@ def build_server():
         draft headed to review: each sentence to fix with its line and
         reason, and the flagged sentences to leave alone."""
         ctx = pick(context, url, filename)
-        return render_spec(run_audit(text, ctx, filename or "<text>",
-                                     model=model, threshold=threshold))
+        try:
+            r = run_audit(text, ctx, filename or "<text>", model=model,
+                          threshold=threshold)
+        except OSError as e:
+            # Ollama not running, or the model not pulled. The address stays
+            # out of the message: on a hosted server it is the host's.
+            raise ValueError(f"the model endpoint did not answer for "
+                             f"{model}: {e}") from e
+        return render_spec(r)
 
     @tool(annotations=offline)
     def contexts() -> dict[str, Any]:

@@ -744,6 +744,22 @@ class Server(unittest.TestCase):
             a._chat = real
         self.assertIn("stub scored the contrast 80/100", r.content[0].text)
 
+    def test_audit_reports_an_endpoint_that_does_not_answer(self):
+        import urllib.error
+        import cringe_filter.audit as a
+
+        def refuse(*args, **kwargs):
+            raise urllib.error.URLError("Connection refused")
+        real, a._chat = a._chat, refuse
+        try:
+            r = self.call(lambda c: c.call_tool("audit", {
+                "text": "The bottleneck is the parser, not the network.\n",
+                "model": "qwen2.5:14b"}))
+        finally:
+            a._chat = real
+        self.assertTrue(r.is_error)
+        self.assertIn("did not answer for qwen2.5:14b", r.content[0].text)
+
     def test_prompts_and_resources(self):
         from mcp import MCPError
 
