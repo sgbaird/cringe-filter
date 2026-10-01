@@ -33,7 +33,7 @@ def pick_context(args, path=None):
 
 def add_structure(sp):
     sp.add_argument("--structure", action=argparse.BooleanOptionalAction, default=None,
-                    help="include (or leave out) the priority on how human sentences "
+                    help="include (or leave out) the priority on how the writer's sentences "
                          "and paragraphs are built, where the register has rates")
 
 
@@ -252,9 +252,9 @@ def cmd_profile(args):
     ref = reference(ctx)
     print(f"{ctx}: {reg['label']} ({reg['n_docs']:,} docs, {reg['n_words']:,} "
           f"words; built {p['built']})")
-    print(f"{'marker':26s}{'human/1k':>9s}{'Claude/1k':>11s}")
+    print(f"{'marker':26s}{'writer/1k':>10s}{'Claude/1k':>11s}")
     for k in sorted(reg["mechanical"]):
-        print(f"{k[:-7]:26s}{reg['mechanical'][k]:9.2f}"
+        print(f"{k[:-7]:26s}{reg['mechanical'][k]:10.2f}"
               f"{ref['mechanical'].get(k, 0):11.2f}")
     return 0
 
@@ -277,7 +277,7 @@ def main(argv=None):
     sp.add_argument("--no-color", action="store_true")
     sp.set_defaults(fn=cmd_lint)
 
-    sp = sub.add_parser("score", help="Claude-versus-human log-odds, by feature")
+    sp = sub.add_parser("score", help="Claude-versus-writer log-odds, by feature")
     add_common(sp)
     sp.set_defaults(fn=cmd_score)
 

@@ -13,7 +13,7 @@ never leaves the machine.
 
 Measured on sentences from three held-out repositories whose authors are
 known (docs/voice/research/local-models.md): a frontier model asked for
-this score separated Claude's contrasts from the human ones; the 1.5B and 3B models
+this score separated Claude's contrasts from the writer's; the 1.5B and 3B models
 that fit on two CPU cores did not do as well. Without --model the
 judgment-call findings are listed for the editor to decide, and nothing is
 dropped.
@@ -28,7 +28,7 @@ from .registers import resolve
 from .structure import sentences
 
 ENDPOINT = os.environ.get("CRINGE_FILTER_LLM_ENDPOINT", "http://localhost:11434/v1")
-# Findings whose rule cannot decide alone: the human uses of the frame are
+# Findings whose rule cannot decide alone: the writer's own uses of the frame are
 # mostly instructions ("an assert, not an if statement"), Claude's mostly
 # reject a reading nobody offered.
 JUDGED = {"x-not-y", "dash-not-y", "is-what-cleft"}
@@ -45,8 +45,8 @@ JUDGE_SYSTEM = (
     "means you can't tell, 100 means clearly set up to be knocked down. "
     "Reply with the number only.")
 # Asked for a verdict, the frontier judge kept all 59 test contrasts;
-# asked for this score it ranked Claude's above the human ones at AUC 0.83, and at 30
-# flagged 11 of Claude's 32 and 1 of the 27 human ones (local-models.md). The
+# asked for this score it ranked Claude's above the writer's at AUC 0.83, and at 30
+# flagged 11 of Claude's 32 and 1 of the writer's 27 (local-models.md). The
 # threshold was chosen on those same 59, so it is a starting point.
 THRESHOLD = 30
 

@@ -76,7 +76,7 @@ def rewrite(text, context="any", model=DEFAULT_MODEL, client=None,
     # budget is reported but never revised against on its own: in the
     # held-out experiment every revision it triggered cut about 6% of the
     # source's content words, moved none of the three classifiers toward
-    # the human writing, and left 22 of 24 drafts over budget anyway
+    # the writer, and left 22 of 24 drafts over budget anyway
     # (docs/voice/research/rewrite-experiment.md).
     errors = [f for f in findings if f["rule"] not in NO_REVISE
               and (f["severity"] == "error"
