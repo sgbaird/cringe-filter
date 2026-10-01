@@ -6,5 +6,6 @@
 
 cli
 api
+methods
 Coding-agent skill <skill>
 ```
