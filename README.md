@@ -2,7 +2,7 @@
 
 cringe-filter checks a draft for the habits that make text read as if
 Claude wrote it: em dashes, the `it isn't X, it's Y` frame, bold lead-ins,
-status emoji, and replies five times longer than they need to be. You tell
+status emoji, and replies far longer than they need to be. You tell
 it where the text is going, and it tells you what to fix and how much more
 often Claude does each thing than a person writing in that place.
 
@@ -10,10 +10,10 @@ The rules come from measurement. We compared 570k words that one
 researcher (called "the writer" below) wrote in GitHub replies, issues and
 reviews with 1.35M words Claude wrote in the same threads. The writer's
 Discussions posts, LinkedIn posts, email, messages, papers and tutorials
-cover the other contexts. The `lint` rules describe Claude's
-habits, so they work on anyone's draft. `score` and `prompt` also pull a
-draft toward how the writer handles that kind of text, which is one
-careful person's practice.
+cover the other contexts. The `lint` rules describe Claude's habits, so
+they work on anyone's draft. `score` and `prompt` go further and pull a
+draft toward the writer's own habits for that kind of text, so treat
+those as one careful person's practice.
 
 It needs Python 3.9 or later and nothing else. The optional `rewrite`
 command also needs the `anthropic` package.
@@ -64,7 +64,7 @@ interval. An `error` makes the command exit with code 1, so you can run it
 in CI or a pre-commit hook. The `warn` and `info` findings are yours to
 judge.
 
-The writer would have written something closer to this, which passes:
+Written closer to how the writer replies, it passes:
 
 ```markdown
 I think the parser was dropping empty rows. Could you check whether a
@@ -126,9 +126,9 @@ cringe-filter lint -c paper --against draft-v1.tex draft-v2.tex
 
 A finding tagged `[preventive, no corpus support]` is a pattern that never
 separated the two authors in that context, and it stays at `info`. Where
-the writer uses a pattern as often as Claude, the rule is off. The writer
-uses "ensure", "leverage", "comprehensive" and "streamline" more than
-Claude does, so `lint` never flags them.
+the writer uses a pattern more than Claude does, the rule is off. That is
+why `lint` never flags "ensure", "leverage", "comprehensive" or
+"streamline".
 
 To silence a false positive, add a comment. `disable-line` covers its own
 line, `disable-next-line` the line after it, and `disable-file` the whole
@@ -167,13 +167,14 @@ isn't X it's Y                                 1     40.00      0.03       0.12 
 ...
 ```
 
-Positive reads like Claude. The writer's version scores -21.12. Each row
+Positive reads like Claude. The rewritten reply scores -21.12. Each row
 is a log-likelihood ratio of Claude's rate against the writer's, and the
 rows overlap, so use the total to decide what to fix first. It is not a
 probability, and the JSON output says `calibrated: false`.
 
-The Delta line compares the draft's 150 most common words, mostly
-function words, with each author's average. The rows counted per 1000
+The Delta line takes the 150 most common words in the corpus, mostly
+function words, and compares how often the draft uses them with each
+author's average. The rows counted per 1000
 sentences describe how the sentences are built, such as how often the
 subject is a person or a sentence opens on "The". Email and tutorials
 have no rows of that kind.
@@ -211,17 +212,16 @@ cringe-filter rewrite -c paper --minimal draft.tex      # edit, do not rewrite
 
 If the result still has lint errors or measured warnings, or it dropped a
 number, link, code span or path (in LaTeX, also a citation, reference or
-math span), `rewrite` makes one more pass. It stops
-at two model calls, because repeated self-revision makes good text worse.
+math span), `rewrite` makes one more pass. It stops at two model calls,
+because repeated self-revision makes good text worse.
 Length alone does not trigger the second pass. In a held-out test, each
 revision made for length cut about 6% of the source's content words and
 moved no classifier toward the writer.
 
 The default model is `claude-opus-5` with adaptive thinking at medium
-effort. A declined request
-is re-run on the server-side fallback model unless you pass
-`--no-fallback`. The rewrite goes to stdout, and the pass count, scores
-and remaining findings go to stderr.
+effort. A declined request is re-run on the server-side fallback model
+unless you pass `--no-fallback`. The rewrite goes to stdout, and the pass
+count, scores and remaining findings go to stderr.
 
 Use `--minimal`, on `rewrite` or `prompt`, for a draft headed to review,
 like a manuscript or a proposal. It asks for the smallest edit a reviewer
@@ -280,10 +280,11 @@ instead.
 ## Inside a coding agent
 
 An agent that drafts prose is already a model, so it does not need
-`rewrite`. [SKILL.md](https://github.com/sgbaird/cringe-filter/blob/main/SKILL.md) is a Claude Code skill that has the agent
-run `lint` and `prompt` and then fix its own draft. Copy it to
-`.claude/skills/cringe-filter/SKILL.md` in any repository where this
-package is installed.
+`rewrite`.
+[SKILL.md](https://github.com/sgbaird/cringe-filter/blob/main/SKILL.md)
+is a Claude Code skill that has the agent run `lint` and `prompt` and then
+fix its own draft. Copy it to `.claude/skills/cringe-filter/SKILL.md` in
+any repository where this package is installed.
 
 ## Where the numbers come from
 
@@ -302,8 +303,9 @@ the same file names:
 export CRINGE_FILTER_PROFILE=~/private/voice/profile.json
 ```
 
-[How it was measured](https://github.com/sgbaird/cringe-filter/blob/main/docs/methods.md) covers the statistics, the
-held-out tests and what is in the profile. To run the tests:
+[How it was measured](https://github.com/sgbaird/cringe-filter/blob/main/docs/methods.md)
+covers the statistics, the held-out tests and what is in the profile. To
+run the tests:
 
 ```bash
 python -m unittest discover -s tests
