@@ -316,6 +316,11 @@ class Structure(unittest.TestCase):
         self.assertLess(ss, 0)
         e = score_text("The parser drops the last row.", "email")
         self.assertFalse([f for f in e["features"] if f["kind"] == "structure"])
+        # The score says so, instead of leaving the rows out silently.
+        from cringe_filter.score import format_score
+        self.assertFalse(e["structure_rates_measured"])
+        self.assertIn("no structure rates", format_score(e))
+        self.assertTrue(c["structure_rates_measured"])
 
 
 class Contexts(unittest.TestCase):

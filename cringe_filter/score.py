@@ -118,6 +118,8 @@ def score_text(text, context="any"):
         "logistic_of_log_odds": round(logistic, 3),
         "calibrated": False,
         "candidate_rates_measured": bool(reg.get("candidate_rates_measured", True)),
+        "structure_rates_measured": all((r.get("structure") or {}).get("rates")
+                                        for r in (reg, ref)),
         "verdict": verdict, "features": feats, "delta": delta,
         "note": ("Style score: Poisson log-likelihood ratio of Claude's GitHub "
                  "rates over the writer's rates in this register, summed over "
@@ -229,6 +231,9 @@ def format_score(r, top=12):
     if not r.get("candidate_rates_measured", True):
         lines.append("note: this register has no measured phrase rates of its "
                      "own; phrase rows use the GitHub-wide rates")
+    if not r.get("structure_rates_measured", True):
+        lines.append("note: this register has no structure rates, so no row "
+                     "checks how the sentences are built")
     L = r.get("length")
     if L:
         flag = "  [over budget]" if L["over_budget"] else ""
