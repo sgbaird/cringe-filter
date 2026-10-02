@@ -130,6 +130,10 @@ the writer uses a pattern more than Claude does, the rule is off. That is
 why `lint` never flags "ensure", "leverage", "comprehensive" or
 "streamline".
 
+A short phrase in double quotes is read as a mention and skipped. At
+`info`, `lint` also flags a sentence longer than 90% of the writer's and
+a run of seven or more words said twice.
+
 To silence a false positive, add a comment. `disable-line` covers its own
 line, `disable-next-line` the line after it, and `disable-file` the whole
 file:

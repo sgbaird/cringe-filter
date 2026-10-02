@@ -40,6 +40,23 @@ Where the profile carries a calibration step
 (`scripts/voice/calibrate_linter.py`), the false-positive rate on the
 writer's own text sets the severity of a measured rule.
 
+## What lint reads
+
+`lint` skips code, URLs and front matter, and keeps every line number.
+The rules also skip the inside of a short span in double quotes (up to
+80 characters), because a page about writing quotes the patterns it
+describes. Single quotes are read, since they double as apostrophes.
+Suppression comments count only outside code.
+
+Three checks look at the whole text. `too-long` compares the word count
+with the context's budget. `long-sentence` flags a sentence longer than
+the writer's 90th percentile for the context. A blank line ends a
+sentence, so a heading or a line that introduces a code block never joins
+the next one. `repeated-phrase` flags a run of seven or more words that
+repeats an earlier one. No measurement backs it, so it stays at `info`.
+At seven words it fires on none of the 86 exemplar passages, and at six
+on two.
+
 ## The score
 
 `score` treats each feature as a Poisson count. It compares Claude's rate
@@ -70,6 +87,12 @@ parentheses inside a sentence, and the share of one-sentence paragraphs.
 a dependency parse of the corpus (`docs/voice/research/structure.md`).
 Email and tutorials have no structure rates, because their text never
 reaches the build.
+
+`structure.py` also counts lists, tables and code blocks, and the share
+of them a colon introduces. The "colon before block" tell counts those
+colons per 1000 words, so it mostly measures how many blocks a page has.
+Once a rebuild carries the share for the context and for Claude, `score`
+uses it in place of the per-word row.
 
 ## The prompt
 
