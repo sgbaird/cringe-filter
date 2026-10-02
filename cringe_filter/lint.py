@@ -537,18 +537,17 @@ def repeated_phrases(plain, n=REPEAT_WORDS):
     words = [t.group(0).lower().replace("’", "'") for t in toks]
     joined = [i > 0 and not BREAK.search(plain, toks[i - 1].end(), toks[i].start())
               for i in range(len(toks))]
-    first, runs, last = {}, [], None
+    first, runs = {}, []
     for i in range(len(toks) - n + 1):
         if not all(joined[i + 1:i + n]):
             continue
         j = first.setdefault(tuple(words[i:i + n]), i)
         if j == i:
             continue
-        if last == (i - 1, j - 1):
-            runs[-1][1] = i + n      # the same repeat, one word longer
+        if runs and i < runs[-1][1]:
+            runs[-1][1] = i + n      # overlaps the last repeat: the same one, longer
         else:
             runs.append([i, i + n, j])
-        last = (i, j)
     return [(toks[a].start(), toks[b - 1].end(), toks[j].start()) for a, b, j in runs]
 
 

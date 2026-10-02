@@ -112,6 +112,9 @@ class Lint(unittest.TestCase):
                 "it failed. Then it failed again and again.")
         self.assertFalse([x for x in lint_text(text, "tutorial")
                           if x["rule"] == "repeated-phrase"])
+        # A repeat that overlaps itself is one finding, not one per word.
+        f = [x for x in lint_text("ha " * 30, "tutorial") if x["rule"] == "repeated-phrase"]
+        self.assertEqual(len(f), 1)
 
     def test_length_budget(self):
         long = " ".join(["word"] * 400) + "."
