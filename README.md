@@ -19,7 +19,7 @@ for that task. Every rate below is that one writer's ("the writer"), so
 read it as one careful human's practice, not a law of human writing.
 
 No dependencies. Python 3.9 or later. The optional `rewrite` command needs
-the `anthropic` package.
+the `anthropic` package, and the MCP server needs `mcp` and Python 3.10.
 
 ## Install
 
@@ -246,6 +246,63 @@ An agent that drafts prose is itself the model, so it does not need
 `lint` and `prompt` and has the agent apply the filter to its own draft.
 Copy it to `.claude/skills/cringe-filter/SKILL.md` in any repository that has
 this package on its path.
+
+## As an MCP server
+
+`cringe-filter mcp` serves the same checks to any client that speaks the
+Model Context Protocol, such as Claude Code, Claude Desktop, VS Code and
+Cursor. An agent can then lint and score a draft without a shell or a
+skill file. It runs on the machine that starts it, over stdio, so a
+private draft stays there.
+
+```bash
+pip install 'cringe-filter[mcp]'
+claude mcp add cringe-filter -- uvx --from 'cringe-filter[mcp]' cringe-filter mcp
+```
+
+A client configured in JSON (Claude Desktop, Cursor, a project's
+`.mcp.json`) takes the same command:
+
+```json
+{
+  "mcpServers": {
+    "cringe-filter": {
+      "command": "uvx",
+      "args": ["--from", "cringe-filter[mcp]", "cringe-filter", "mcp"]
+    }
+  }
+}
+```
+
+The tools `lint`, `score`, `audit` and `contexts` match the commands of
+the same name; `lint` takes `against` for the old version, and `score`
+reports the top features only (`top`, default 12). `filter_prompt` is
+`prompt --system-only`, with `minimal` and `evidence` as in `prompt`. The
+prompts `rewrite` and `minimal_edit` put a draft under the filter for the
+client's own model to edit, and the resources
+`cringe-filter://filter/{context}` and `cringe-filter://profile/{context}`
+serve a context's filter and its measured rates.
+
+Each tool takes `context` (a name or alias) or `url`, as the commands do.
+`lint` and `score` answer with the report the command prints, a third to
+half the length of the JSON, and carry the JSON as structured content for
+programs. There is no rewrite tool, for the reason
+in the section above: the agent calling the server is the model. `audit`
+consults a model only when the call names one, at the endpoint
+`CRINGE_FILTER_LLM_ENDPOINT` sets where the server runs. The server also
+sends a short form of the `SKILL.md` procedure as its instructions, which
+clients such as Claude Code pass to the model.
+
+Over streamable HTTP the same server can be hosted for clients that cannot
+start a local process. It keeps no state between calls, so any number of
+copies can serve it, but every draft sent to it passes through that host.
+
+```bash
+cringe-filter mcp --transport streamable-http --port 8000   # http://127.0.0.1:8000/mcp
+docker build -t cringe-filter-mcp . && docker run -p 8000:8000 cringe-filter-mcp
+```
+
+The container listens on `$PORT` when the platform sets one.
 
 ## What is in the bundle
 

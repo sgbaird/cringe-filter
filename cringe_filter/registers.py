@@ -78,6 +78,16 @@ def infer_context(url_or_path):
     return "any"
 
 
+def pick(context=None, url=None, path=None):
+    """The context for a draft: the destination URL when there is one, then
+    the name given, then the file (a .tex file is a manuscript)."""
+    if url:
+        return infer_context(url)
+    if not context and path and str(path).lower().endswith((".tex", ".ltx")):
+        return resolve("paper")
+    return resolve(context or "any")
+
+
 def register(ctx):
     return profile()["registers"][resolve(ctx)]
 
