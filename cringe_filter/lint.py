@@ -462,7 +462,8 @@ WORD = re.compile(r"[A-Za-z0-9][\w'’-]*")
 # semicolon, a quote mark, a blank line, or a list item, quote, table row
 # or header starting.
 BREAK = re.compile(r"[.!?;:\"“”]|\n[ \t]*\n|\n(?=" + NOT_PROSE.pattern + ")")
-# At 7 words the check fires on none of the 86 exemplar passages; at 6, on 2.
+# At 7 words the check fires on none of the 83 passages in the example banks;
+# at 6, on 3.
 REPEAT_WORDS = 7
 
 

@@ -54,8 +54,8 @@ the writer's 90th percentile for the context. A blank line ends a
 sentence, so a heading or a line that introduces a code block never joins
 the next one. `repeated-phrase` flags a run of seven or more words that
 repeats an earlier one. No measurement backs it, so it stays at `info`.
-At seven words it fires on none of the 86 exemplar passages, and at six
-on two.
+At seven words it fires on none of the 83 passages in the example banks,
+and at six on three.
 
 ## The score
 

@@ -203,6 +203,21 @@ class Prompt(unittest.TestCase):
         _, _, evidence = build_prompt("Some text.", "github", with_evidence=True)
         self.assertIn("em-dash", evidence)
 
+    def test_tutorial_examples_are_docs_pages(self):
+        # Docs pages, not issue comments: no duplicates, and no holes where a
+        # link or code span was cut out.
+        from cringe_filter.prompt import pick_exemplars
+        reg = profile()["registers"]["tutorial"]
+        self.assertEqual(reg["exemplars"], ["tutorial.md"])
+        bank = exemplars("tutorial.md")
+        texts = [e["text"] for e in bank]
+        self.assertGreaterEqual(len(texts), 8)
+        self.assertEqual(len(set(texts)), len(texts))
+        for t in texts:
+            self.assertNotRegex(t, r"\S {2,}\S", t[:60])
+        for p in pick_exemplars(reg, "tutorial", 2):
+            self.assertTrue(any(t.startswith(p[:200]) for t in texts))
+
     def test_paper_has_no_latinate_rule(self):
         system, _ = build_prompt("x", "paper")
         self.assertNotIn("'leverage'", system)
