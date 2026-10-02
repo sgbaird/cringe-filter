@@ -261,6 +261,33 @@ class Structure(unittest.TestCase):
         self.assertEqual(c["one_sentence_paragraphs"], 2)
         self.assertEqual(c["list_words"], 8)        # two items and a header, markers included
 
+    def test_colon_blocks(self):
+        from cringe_filter.structure import colon_blocks, measure, rates
+        text = ("Run this:\n\n```bash\nls\n```\n\n**Changes:**\n- one\n- two\n"
+                "  wrapped\n\nSome prose.\n\n| a | b |\n| - | - |\n")
+        self.assertEqual(colon_blocks(text), (3, 2))
+        self.assertEqual(rates(measure(text))["colon_block"], 0.6667)
+
+    def test_colon_share_replaces_the_per_word_row(self):
+        import copy
+        from cringe_filter import bundle
+        text = "Run this:\n\n```\nls\n```\n\nThen check the log.\n\n- one\n- two\n"
+        before = {f["feature"] for f in score_text(text, "github")["features"]}
+        self.assertIn("colon before block", before)
+        # A rebuild that measures the share carries it for both sides.
+        p = bundle.profile()
+        saved = copy.deepcopy(p)
+        try:
+            p["registers"]["github"]["structure"]["rates"]["colon_block"] = 0.5
+            p["reference"]["structure"]["rates"]["colon_block"] = 0.9
+            feats = {f["feature"]: f for f in score_text(text, "github")["features"]}
+        finally:
+            p.clear()
+            p.update(saved)
+        self.assertNotIn("colon before block", feats)
+        row = feats["lists, tables and code blocks a colon introduces"]
+        self.assertEqual((row["n"], row["of"], row["unit"]), (1, 2, "per 1000 blocks"))
+
     def test_prompt_line_is_default_and_data_driven(self):
         s, _ = build_prompt("x", "github", structure=False)
         self.assertNotIn("Make a person the subject", s)

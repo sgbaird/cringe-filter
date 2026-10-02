@@ -69,8 +69,10 @@ def score_text(text, context="any"):
                       "kind": "stance" if (key, label) in STANCE else "format"})
 
     own = reg.get("candidate_per_1k") or {}
+    covered = COVERED | ({"colon before block"} if has_share(reg, ref, "colon_block")
+                         else set())
     for phrase, t in p["tells"].items():
-        if phrase in COVERED or not t.get("significant"):
+        if phrase in covered or not t.get("significant"):
             continue
         rx = re.compile(t["pattern"], re.I | re.M)
         n = len(rx.findall(cleaned))
@@ -129,19 +131,28 @@ def score_text(text, context="any"):
 # count: questions are a stance marker, list words are bullets and tables.
 STRUCTURE = ("person_open", "determiner_open", "number_open", "conjunction_open",
              "adverb_open", "modal", "to_verb", "colon", "semicolon", "dash",
-             "paren", "one_sentence_paragraphs")
+             "paren", "one_sentence_paragraphs", "colon_block")
 SHARES = {"person_open", "determiner_open", "number_open", "conjunction_open",
-          "adverb_open", "one_sentence_paragraphs"}
+          "adverb_open", "one_sentence_paragraphs", "colon_block"}
+
+
+def has_share(reg, ref, key):
+    """Whether both sides carry a structure rate for key. A profile built
+    before colon_block existed has none, and the per-word "colon before
+    block" row stands in for it until a rebuild measures the share."""
+    return all(((r.get("structure") or {}).get("rates") or {}).get(key) is not None
+               for r in (reg, ref))
 
 
 def structure_features(text, reg, ref):
     """How the draft's sentences are built, against both writers.
 
-    A share (sentences opening on a person, one-sentence paragraphs) is
-    scored as a binomial log-likelihood ratio over the draft's sentences or
-    paragraphs, and a count per sentence (modals, colons) as a Poisson one,
-    the same way the word markers are. Registers without structure rates
-    (email, tutorials, manuscripts) score nothing here."""
+    A share (sentences opening on a person, one-sentence paragraphs, blocks
+    a colon introduces) is scored as a binomial log-likelihood ratio over
+    the draft's sentences, paragraphs or blocks, and a count per sentence
+    (modals, colons) as a Poisson one, the same way the word markers are.
+    Registers without structure rates (email, tutorials) score nothing
+    here."""
     writer = (reg.get("structure") or {}).get("rates")
     cl = (ref.get("structure") or {}).get("rates")
     if not writer or not cl:
@@ -167,8 +178,8 @@ def structure_features(text, reg, ref):
                     "writer_per_1k": round(1000 * s_rate, 2),
                     "claude_per_1k": round(1000 * c_rate, 2),
                     "log_odds": round(lo, 3), "kind": "structure",
-                    "unit": "per 1000 " + ("paragraphs" if den_key == "prose_paragraphs"
-                                           else "sentences")})
+                    "unit": "per 1000 " + {"prose_paragraphs": "paragraphs",
+                                           "blocks": "blocks"}.get(den_key, "sentences")})
     return out
 
 
@@ -233,7 +244,10 @@ def format_score(r, top=12):
                      f"({who.get(d['closer_to'], 'a tie')})")
     lines.append(f"{'feature':44s}{'n':>4s}{'yours/1k':>10s}{'writer/1k':>10s}"
                  f"{'Claude/1k':>11s}{'log-odds':>10s}")
-    lines.append("(per 1000 words; structure rows per 1000 sentences or prose paragraphs)")
+    per = ("sentences, prose paragraphs or blocks"
+           if any(f.get("unit") == "per 1000 blocks" for f in r["features"][:top])
+           else "sentences or prose paragraphs")
+    lines.append(f"(per 1000 words; structure rows per 1000 {per})")
     for f in r["features"][:top]:
         lines.append(f"{f['feature'][:43]:44s}{f['n']:4d}{f['per_1k']:10.2f}"
                      f"{f['writer_per_1k']:10.2f}{f['claude_per_1k']:11.2f}"
