@@ -462,6 +462,7 @@ WORD = re.compile(r"[A-Za-z0-9][\w'’-]*")
 # semicolon, a quote mark, a blank line, or a list item, quote, table row
 # or header starting.
 BREAK = re.compile(r"[.!?;:\"“”]|\n[ \t]*\n|\n(?=" + NOT_PROSE.pattern + ")")
+# At 7 words the check fires on none of the 86 exemplar passages; at 6, on 2.
 REPEAT_WORDS = 7
 
 
@@ -641,9 +642,9 @@ def lint_text(text, context="any", path="<text>", budget_only=False):
                            f"{sent_p90}.",
                 "snippet": " ".join(text[start:end].split())[:110]})
 
-    # No corpus behind this one: Claude restates a line it liked, and the
+    # No corpus measurement behind this one, so it stays preventive. The
     # old README said "a ranking of what to fix, not a calibrated
-    # probability" three times without any rule noticing.
+    # probability" three times and no rule noticed.
     for start, end, earlier in ([] if budget_only else repeated_phrases(plain)):
         ln = line_of(text, start)
         if suppressed(ln, "repeated-phrase"):
