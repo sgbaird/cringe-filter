@@ -64,7 +64,7 @@ def score_text(text, context="any"):
         c = ref["mechanical"].get(f"{key}_per_1k", 0) or 0
         feats.append({"feature": label, "n": n,
                       "per_1k": round(1000 * n / words, 2),
-                      "sterling_per_1k": s, "claude_per_1k": c,
+                      "writer_per_1k": s, "claude_per_1k": c,
                       "log_odds": round(llr(n, words, s, c), 3),
                       "kind": "stance" if (key, label) in STANCE else "format"})
 
@@ -80,7 +80,7 @@ def score_text(text, context="any"):
             continue
         feats.append({"feature": phrase, "n": n,
                       "per_1k": round(1000 * n / words, 2),
-                      "sterling_per_1k": s, "claude_per_1k": c,
+                      "writer_per_1k": s, "claude_per_1k": c,
                       "log_odds": round(llr(n, words, s, c), 3),
                       "kind": "tell"})
 
@@ -96,7 +96,7 @@ def score_text(text, context="any"):
     if total > 2:
         verdict = "reads like Claude"
     elif total < -2:
-        verdict = "reads human"
+        verdict = "reads like the writer"
     else:
         verdict = "in between"
     feats.sort(key=lambda f: -abs(f["log_odds"]))
@@ -164,7 +164,7 @@ def structure_features(text, reg, ref):
             lo = n * math.log(lc / ls) - d * (lc - ls)
         out.append({"feature": label, "n": n, "of": d,
                     "per_1k": round(1000 * n / d, 2),
-                    "sterling_per_1k": round(1000 * s_rate, 2),
+                    "writer_per_1k": round(1000 * s_rate, 2),
                     "claude_per_1k": round(1000 * c_rate, 2),
                     "log_odds": round(lo, 3), "kind": "structure",
                     "unit": "per 1000 " + ("paragraphs" if den_key == "prose_paragraphs"
@@ -201,9 +201,12 @@ def burrows_delta(cleaned, reg, ref, mfw):
 
     to_reg = dist(reg["mfw_mean"])
     to_claude = dist(ref["mfw_mean"])
+    # Decided on the two decimals format_score prints, so distances that
+    # print the same are a tie, not closer to one side.
+    a, b = round(round(to_reg, 3), 2), round(round(to_claude, 3), 2)
     return {"to_register": round(to_reg, 3), "to_claude": round(to_claude, 3),
             "margin": round(to_claude - to_reg, 3),
-            "closer_to": "register" if to_reg < to_claude else "claude",
+            "closer_to": "register" if a < b else "claude" if b < a else "tie",
             "n_features": len(words), "n_tokens": len(toks)}
 
 
@@ -223,15 +226,16 @@ def format_score(r, top=12):
                      f"{L['budget_words']}{flag}")
     d = r.get("delta")
     if d:
-        who = "the writer" if d["closer_to"] == "register" else "Claude"
+        who = {"register": "closer to the writer", "claude": "closer to Claude"}
         lines.append(f"Burrows' Delta over the {d['n_features']} most frequent "
                      f"words: {d['to_register']:.2f} to the writer's register, "
-                     f"{d['to_claude']:.2f} to Claude (closer to {who})")
+                     f"{d['to_claude']:.2f} to Claude "
+                     f"({who.get(d['closer_to'], 'a tie')})")
     lines.append(f"{'feature':44s}{'n':>4s}{'yours/1k':>10s}{'writer/1k':>10s}"
                  f"{'Claude/1k':>11s}{'log-odds':>10s}")
     lines.append("(per 1000 words; structure rows per 1000 sentences or prose paragraphs)")
     for f in r["features"][:top]:
         lines.append(f"{f['feature'][:43]:44s}{f['n']:4d}{f['per_1k']:10.2f}"
-                     f"{f['sterling_per_1k']:10.2f}{f['claude_per_1k']:11.2f}"
+                     f"{f['writer_per_1k']:10.2f}{f['claude_per_1k']:11.2f}"
                      f"{f['log_odds']:+10.2f}")
     return "\n".join(lines)

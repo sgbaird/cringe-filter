@@ -173,6 +173,18 @@ class Score(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(score_text("", "github")["verdict"], "empty")
 
+    def test_delta_tie_and_writer_wording(self):
+        from cringe_filter.score import burrows_delta, format_score
+        mfw = {"words": ["the"], "pooled_mean": [0.0], "pooled_std": [1.0]}
+        d = burrows_delta("the cat", {"mfw_mean": [490.0]}, {"mfw_mean": [510.0]}, mfw)
+        self.assertEqual((d["to_register"], d["to_claude"], d["closer_to"]),
+                         (10.0, 10.0, "tie"))
+        r = score_text(STERLING_ISH, "github")
+        self.assertEqual(r["verdict"], "reads like the writer")
+        self.assertNotIn("sterling", json.dumps(r))
+        r["delta"] = d
+        self.assertIn("(a tie)", format_score(r))
+
 
 class Prompt(unittest.TestCase):
     def test_contains_exemplar_and_label(self):
