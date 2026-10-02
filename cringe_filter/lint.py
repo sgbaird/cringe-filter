@@ -143,7 +143,7 @@ SPECS = [
     Spec("md-table", r"^[ \t]*\|.*\|[ \t]*$", "formatting", "warn",
          "Markdown table.", "markdown table",
          contexts=("github", "discussion", "third-party", "email",
-                   "linkedin", "message", "any")),
+                   "linkedin", "message", "tutorial", "any")),
     Spec("checkbox", r"^[ \t]*[-*] \[[ xX]\]", "formatting", "warn",
          "Checkbox list.", "checkbox list",
          contexts=("discussion", "email", "linkedin", "message", "tutorial",
@@ -442,11 +442,27 @@ DISABLE_FILE = re.compile(r"(cringe-lint|cringe-filter|voicekit):\s*disable-file
 KEYLIST = r"(?:\s+([\w-]+(?:\s*,\s*[\w-]+)*))?"
 DISABLE_LINE = re.compile(r"(?:cringe-lint|cringe-filter|voicekit):\s*disable-line" + KEYLIST)
 DISABLE_NEXT = re.compile(r"(?:cringe-lint|cringe-filter|voicekit):\s*disable-next-line" + KEYLIST)
-SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 CODE_BLOCK = re.compile(r"```.*?```", re.S)
 INLINE_CODE = re.compile(r"`[^`\n]+`")
 URL = re.compile(r"https?://\S+")
 FRONTMATTER = re.compile(r"\A---\n.*?\n---\n", re.S)
+# A short span in double quotes, straight or curly, on one line or across
+# one line break.
+QUOTED = re.compile(r'(?<![\w"])"(?=\S)((?:[^"\n]|\n(?![ \t]*\n)){1,80}?)(?<=\S)"(?!\w)'
+                    r'|“((?:[^”\n]|\n(?![ \t]*\n)){1,80}?)”')
+# Lines that are not prose: list items, quotes, table rows and headers.
+NOT_PROSE = re.compile(r"[ \t]*(?:>|\||#{1,6}(?:[ \t]|$)|(?:[-*+]|\d+[.)])(?:[ \t]|$))")
+LIST_ITEM = re.compile(r"[ \t]*(?:[-*+]|\d+[.)])(?:[ \t]|$)")
+PARAGRAPH = re.compile(r"(?:^[ \t]*\S.*(?:\n|\Z))+", re.M)
+# Sentence ends where markers.SENT_SPLIT puts them, the splitter the
+# writer's p90 was measured with.
+SENTENCE = re.compile(r"\S.*?(?:[.!?](?=\s)|\Z)", re.S)
+WORD = re.compile(r"[A-Za-z0-9][\w'’-]*")
+# What ends a run of words for the repeat check: a sentence end, a colon or
+# semicolon, a quote mark, a blank line, or a list item, quote, table row
+# or header starting.
+BREAK = re.compile(r"[.!?;:\"“”]|\n[ \t]*\n|\n(?=" + NOT_PROSE.pattern + ")")
+REPEAT_WORDS = 7
 
 
 def maskable(text, is_latex=False):
@@ -465,6 +481,75 @@ def maskable(text, is_latex=False):
     text = CODE_BLOCK.sub(blank, text)
     text = INLINE_CODE.sub(blank, text)
     return text
+
+
+def mentions(masked):
+    """The masked text with the inside of each short quoted span blanked.
+
+    Quoting a pattern names it rather than using it ('the "X, not Y"
+    frame'), and on a page about writing the quoted examples were what the
+    rules found: the old README's one error and three of its nine warnings.
+    The quote marks stay, and a span over 80 characters is still read,
+    which bounds what an unmatched quote mark can hide. Single quotes are
+    left alone, since they are also apostrophes."""
+    def blank(m):
+        inner = m.group(1) if m.group(1) is not None else m.group(2)
+        return m.group(0)[0] + re.sub(r"[^\n]", " ", inner) + m.group(0)[-1]
+    return QUOTED.sub(blank, masked)
+
+
+def prose(masked):
+    """The masked text with everything but prose paragraphs blanked: list
+    items and their continuation lines, quotes, table rows and headers."""
+    out, item = [], False
+    for line in masked.split("\n"):
+        if not line.strip():
+            item = False
+        elif NOT_PROSE.match(line):
+            item = bool(LIST_ITEM.match(line))
+            line = " " * len(line)
+        elif item and line[:1] in (" ", "\t"):
+            line = " " * len(line)
+        else:
+            item = False
+        out.append(line)
+    return "\n".join(out)
+
+
+def sentence_spans(masked):
+    """(start, end) of each prose sentence in the masked text.
+
+    A sentence never runs past a blank line, so a header or a line ending
+    in a colon is not joined to the sentence after the block it introduces
+    (the mask leaves a code block blank). The offsets index the original
+    text too, because the mask keeps every character in place."""
+    text = prose(masked)
+    for para in PARAGRAPH.finditer(text):
+        for m in SENTENCE.finditer(para.group(0)):
+            yield para.start() + m.start(), para.start() + m.end()
+
+
+def repeated_phrases(plain, n=REPEAT_WORDS):
+    """(start, end, earlier) for each run of n or more words that repeats an
+    earlier run word for word: character offsets of the repeat and of the
+    first time it appeared. Runs stop at sentence ends and blocks."""
+    toks = list(WORD.finditer(plain))
+    words = [t.group(0).lower().replace("’", "'") for t in toks]
+    joined = [i > 0 and not BREAK.search(plain, toks[i - 1].end(), toks[i].start())
+              for i in range(len(toks))]
+    first, runs, last = {}, [], None
+    for i in range(len(toks) - n + 1):
+        if not all(joined[i + 1:i + n]):
+            continue
+        j = first.setdefault(tuple(words[i:i + n]), i)
+        if j == i:
+            continue
+        if last == (i - 1, j - 1):
+            runs[-1][1] = i + n      # the same repeat, one word longer
+        else:
+            runs.append([i, i + n, j])
+        last = (i, j)
+    return [(toks[a].start(), toks[b - 1].end(), toks[j].start()) for a, b, j in runs]
 
 
 def directives(text, is_latex=False):
@@ -506,15 +591,20 @@ def lint_text(text, context="any", path="<text>", budget_only=False):
     ctx = resolve(context)
     reg = profile()["registers"][ctx]
     masked = maskable(text, is_latex)
+    # The rules read quoted spans as mentions; length counts every word.
+    plain = masked if is_latex else mentions(masked)
     supp = suppressions(live)
     findings = []
 
+    def suppressed(line, key):
+        at = supp.get(line, set())
+        return "*" in at or key in at
+
     if not budget_only:
         for rule in rules_for(ctx):
-            for m in re.finditer(rule.pattern, masked, rule.flags):
+            for m in re.finditer(rule.pattern, plain, rule.flags):
                 ln = line_of(text, m.start())
-                at = supp.get(ln, set())
-                if "*" in at or rule.key in at:
+                if suppressed(ln, rule.key):
                     continue
                 snippet = text[max(0, m.start() - 30):m.end() + 30]
                 findings.append({
@@ -540,21 +630,34 @@ def lint_text(text, context="any", path="<text>", budget_only=False):
             "snippet": ""})
 
     sent_p90 = reg.get("sent_words_p90") or 45
-    prose_lines = [l for l in masked.split("\n")
-                   if l.strip() and not re.match(r"\s*([-*+>|#]|\d+[.)])\s", l)]
-    prose = re.sub(r"\s+", " ", " ".join(prose_lines))
-    for s in SENT_SPLIT.split(prose):
-        n = len(s.split())
-        if n > sent_p90:
-            idx = text.find(s.strip()[:40])
+    for start, end in sentence_spans(masked):
+        n = len(masked[start:end].split())
+        ln = line_of(text, start)
+        if n > sent_p90 and not suppressed(ln, "long-sentence"):
             findings.append({
-                "file": path, "line": line_of(text, idx) if idx > 0 else 1,
-                "rule": "long-sentence",
+                "file": path, "line": ln, "rule": "long-sentence",
                 "severity": overrides.get("long-sentence", "info"), "family": "length",
                 "evidence": "measured", "lean": None, "ci_familywise": None,
                 "message": f"{n}-word sentence; the writer's p90 in this register is "
                            f"{sent_p90}.",
-                "snippet": " ".join(s.split())[:110]})
+                "snippet": " ".join(text[start:end].split())[:110]})
+
+    # No corpus behind this one: Claude restates a line it liked, and the
+    # old README said "a ranking of what to fix, not a calibrated
+    # probability" three times without any rule noticing.
+    for start, end, earlier in ([] if budget_only else repeated_phrases(plain)):
+        ln = line_of(text, start)
+        if suppressed(ln, "repeated-phrase"):
+            continue
+        phrase = " ".join(text[start:end].split())
+        findings.append({
+            "file": path, "line": ln, "rule": "repeated-phrase",
+            "severity": overrides.get("repeated-phrase", "info"),
+            "family": "repetition", "evidence": "preventive", "lean": None,
+            "ci_familywise": None, "match": phrase.lower(),
+            "message": (f"{len(WORD.findall(plain[start:end]))} words repeated "
+                        f"from line {line_of(text, earlier)}. Say it once."),
+            "snippet": phrase[:110]})
 
     order = {"error": 0, "warn": 1, "info": 2}
     findings.sort(key=lambda f: (order[f["severity"]], f["line"]))

@@ -44,6 +44,13 @@ class Lint(unittest.TestCase):
         self.assertFalse(any(x["rule"] == "md-header" for x in lint_text(text, "tutorial")))
         self.assertFalse(any(x["rule"] == "md-header" for x in lint_text(text, "third-party")))
 
+    def test_lint_flags_the_tables_the_prompt_forbids(self):
+        for ctx in ("github", "discussion", "third-party", "email", "message",
+                    "linkedin", "tutorial"):
+            system, _ = build_prompt("x", ctx)
+            if "no tables" in system or "without headers, tables" in system:
+                self.assertIn("md-table", {r.key for r in rules_for(ctx)}, ctx)
+
     def test_suppression(self):
         text = "A thing — another. <!-- cringe-filter: disable-line em-dash -->"
         self.assertFalse(any(x["rule"] == "em-dash" for x in lint_text(text, "github")))
@@ -64,9 +71,47 @@ class Lint(unittest.TestCase):
     def test_readme_passes_its_own_linter(self):
         root = os.path.dirname(HERE)
         with open(os.path.join(root, "README.md"), encoding="utf-8") as f:
-            found = lint_text(f.read(), "tutorial", "README.md")
-        self.assertTrue(found, "the README should be linted, not skipped")
+            text = f.read()
+        found = lint_text(text, "tutorial", "README.md")
         self.assertEqual([x for x in found if x["severity"] != "info"], [])
+        # Linted, not skipped: a tell added at the end is still found.
+        found = lint_text(text + "\nA thing — another.\n", "tutorial", "README.md")
+        self.assertTrue(any(x["rule"] == "em-dash" for x in found))
+
+    def test_long_sentence_stays_in_its_paragraph(self):
+        words = " ".join(["word"] * 34)  # the tutorial p90 is 35
+        # A heading, or a line that introduces a code block, is not part of
+        # the sentence after it.
+        text = (f"## A heading of six words\n\n{words}.\n\n"
+                f"Run this:\n\n```\nls\n```\n\n{words}.")
+        self.assertFalse([x for x in lint_text(text, "tutorial")
+                          if x["rule"] == "long-sentence"])
+        # Masked inline code does not lose the line.
+        text = f"Short.\n\nThen `run it` and {words} {words}."
+        f = [x for x in lint_text(text, "tutorial") if x["rule"] == "long-sentence"]
+        self.assertEqual([x["line"] for x in f], [3])
+        self.assertIn("`run it`", f[0]["snippet"])
+
+    def test_quoted_pattern_is_a_mention(self):
+        text = ("Avoid the \"it isn't X, it's Y\" frame and the “X, not Y” "
+                "correction.")
+        rules = {x["rule"] for x in lint_text(text, "tutorial")}
+        self.assertFalse(rules & {"isnt-x-its-y", "x-not-y"}, rules)
+        rules = {x["rule"] for x in lint_text("It isn't a hack, it's the real fix.",
+                                              "tutorial")}
+        self.assertIn("isnt-x-its-y", rules)
+
+    def test_repeated_phrase(self):
+        text = ("The score is a ranking of what to fix, not a probability. "
+                "Read it as a ranking of what to fix, not as a verdict.")
+        f = [x for x in lint_text(text, "tutorial") if x["rule"] == "repeated-phrase"]
+        self.assertEqual([(x["match"], x["severity"]) for x in f],
+                         [("a ranking of what to fix, not", "info")])
+        # Six words, or seven with a sentence end inside, are not a repeat.
+        text = ("We ran it on the Pi today. We ran it on the Pi. Then "
+                "it failed. Then it failed again and again.")
+        self.assertFalse([x for x in lint_text(text, "tutorial")
+                          if x["rule"] == "repeated-phrase"])
 
     def test_length_budget(self):
         long = " ".join(["word"] * 400) + "."
