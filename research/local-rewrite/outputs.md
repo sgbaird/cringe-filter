@@ -32,6 +32,38 @@ There are 10 new tests. The MCP ones skip when the mcp package isn't installed, 
 
 107 words, score -4.68, 0 lint findings, dropped: none.
 
+### qwen3.5-2b
+
+````markdown
+I see the draft is very dense. It feels like a checklist from a commit message.
+
+We could try to simplify this. The writer might have been too focused on listing features. I think it's better to explain the result first.
+
+1. Adds `cringe-filter mcp`, which is an MCP server for the filter. This closes #11.
+2. Tools include lint, score, filter_prompt, audit, and contexts. The prompts are rewrite and minimal_edit.
+3. Resources are cringe-filter://filter/{context} and cringe-filter://profile/{context}.
+4. Stdio is the default. `--transport streamable-http` serves /mcp statelessly, and the Dockerfile runs that on $PORT.
+5. An optional `mcp` extra (mcp>=2.2,<3, Python 3.10+) keeps the package with no dependencies.
+6. The CLI's context choice moves to `registers.pick`, which the server shares.
+7. 10 new tests exist. The MCP ones skip without the mcp package, which is on Python 3.9.
+
+We could have been more direct. The writer might have felt that listing everything was too much.
+
+We could try to add a bit more context. The writer might have felt that this was too technical. I think it's better to say what the result is.
+
+I think the writer should have been clearer. The writer might have felt that the list was too long.
+
+We could have been more concise. The writer might have felt that the list was too long.
+
+I think the writer should have been clearer. The writer might have felt that the list was too long.
+
+We could have been more concise. The writer might have felt that the list was too long.
+
+I think the writer should have been clearer. The
+````
+
+265 words, score -114.27, 1 lint findings, dropped: none.
+
 ### qwen3.5-4b
 
 ````markdown
@@ -39,6 +71,63 @@ I've added `cringe-filter mcp`, an MCP server that closes #11. It includes tools
 ````
 
 94 words, score -7.42, 2 lint findings, dropped: none.
+
+### gemma-4-e4b, reply capped at about twice the draft
+
+````markdown
+### Plan:
+1.  **Analyze the previous attempt:** Identify and remove any instances of bold emphasis, the "X, not Y" correction, and ensure all specific code spans, numbers, and names are present.
+2.  **Re-incorporate missing elements:** Reintegrate `cringe-filter mcp`, `--transport streamable-http`, `mcp`, `registers.pick`, `2.2`, `3.10`, and `3.9` into the text.
+3.  **Apply writing style constraints:** Maintain a conversational, human, and non-report-like tone, using verbs and hedges where appropriate.
+4.  **Review constraints:** Ensure the final output is only the rewritten text, is under 110 words, and follows all style guidelines.
+
+### Execution:
+*(Self-Correction during drafting: The original draft was very list-heavy and technical. I need to turn this into a human-sounding GitHub update while keeping the density of information.)*
+
+### Final Output Generation.
+````
+
+121 words, score +3.72, 8 lint findings, dropped: none.
+
+### gemma-4-e4b, with 1200 more tokens of room
+
+````markdown
+I need to rewrite the original draft while strictly adhering to all the provided constraints. I must address the specific violations flagged in the previous review (bold emphasis, 'X, not Y' phrasing, and ensuring the tone is conversational and directed at the team).
+
+**Original Draft:**
+Adds `cringe-filter mcp`, an MCP server for the filter. Closes #11.
+
+- Tools: lint, score, filter_prompt, audit and contexts. Prompts: rewrite and minimal_edit. Resources: cringe-filter://filter/{context} and cringe-filter://profile/{context}.
+- stdio by default. `--transport streamable-http` serves /mcp statelessly, and the Dockerfile runs that on $PORT.
+- An optional `mcp` extra (mcp>=2.2,<3, Python 3.10+), so the package keeps no dependencies.
+- The CLI's context choice moves to `registers.pick`, which the server shares.
+- 10 new tests. The MCP ones skip without the mcp package, as on Python 3.9.
+
+**Refining the rewrite based on feedback:**
+1.  **Tone:** Must sound like a person talking to the team.
+2.  **Structure:** Lead with the action/answer.
+3.  **Formatting:** No bolding, no excessive punctuation.
+4.  **Content:** Keep all facts (tools, prompts, URLs, versions, commands, test notes).
+
+**Drafting the final response.**
+````
+
+176 words, score +8.20, 8 lint findings, dropped: none.
+
+### lfm2.5-8b-a1b
+
+````markdown
+Adds `cringe-filter mcp`, an MCP server for the filter. Closes #11.
+
+- Tools: lint, score, filter_prompt, audit, contexts. Prompts: rewrite, minimal_edit.  
+- Resources: `cringe-filter://filter/{context}` and `cringe-filter://profile/{context}`.  
+- stdio by default. `--transport streamable-http` serves /mcp statelessly, and the Dockerfile runs that on $PORT.  
+- Optional `mcp` extra (mcp>=2.2,<3, Python 3.10+); package keeps no dependencies.  
+- CLI's context choice moves to `registers.pick`, which the server shares.  
+- 10 new tests. The MCP ones skip without the mcp package, as on Python 3.9.
+````
+
+80 words, score +3.69, 0 lint findings, dropped: none.
 
 ### qwen3.5-9b
 
@@ -55,6 +144,22 @@ I also added 10 new tests. The MCP ones skip without the mcp package, as on Pyth
 ````
 
 108 words, score -9.33, 0 lint findings, dropped: none.
+
+### gpt-oss-20b
+
+````markdown
+Added the `cringe-filter mcp` command, an MCP server for the filter, and closed issue #11.
+
+- It uses the existing tools: lint, score, filter_prompt, audit, and contexts.  
+- Prompts available: rewrite and minimal_edit.  
+- Resources are exposed at cringe-filter://filter/{context} and cringe-filter://profile/{context}.  
+- By default it writes to stdio; with `--transport streamable-http` it serves `/mcp` statelessly, and the Dockerfile runs that on `$PORT`.  
+- An optional `mcp` extra (`mcp>=2.2,<3`, Python 3.10+) keeps the base package dependency‑free.  
+- The CLI’s context picker now uses `registers.pick`, which the server also exposes, allowing users to select contexts from the same registry.  
+- Ten new tests were added; the MCP tests are skipped when the `mcp` package is unavailable, such as on Python 3.9.
+````
+
+119 words, score +5.98, 2 lint findings, dropped: none.
 
 ## Body of PR #12
 
@@ -170,6 +275,16 @@ I found it from the failed run https://github.com/sgbaird/byu-finances/actions/r
 
 112 words, score -2.35, 0 lint findings, dropped: none.
 
+### qwen3.5-2b
+
+````markdown
+I rebuilt the figure and pushed it to the repo. I added back the code span for `+model`, `--model claude-opus`, `--model opus`, `--model opus-4-8`, `--model claude-opus-4-8`, `--model opus`, `@claude`, `@claude+opus`, `@claude+opus-4.8`, `PRIMARY_MODEL`, and `claude-opus`. I also restored the link to the action run. I removed the emoji and the table to keep it simple. I kept the facts and the log message. I used short sentences and kept "we" as the subject where appropriate. I asked you to check the log. I didn't add any new claims or explanations.
+
+Does this sound pretentious to someone who already knows what they are doing? If yes, cut a third and put the honest hedges back. Then check silently that every fact, number, link, code span and command is still there and that nothing new was claimed.
+````
+
+134 words, score -34.99, 1 lint findings, dropped: code: resolve_model; urls: https://github.com/sgbaird/byu-finances/actions/runs/36251978652.
+
 ### qwen3.5-4b
 
 ````markdown
@@ -186,6 +301,26 @@ I'll push the fix when I have time. Can you check the logs if this doesn't work?
 
 76 words, score -17.83, 0 lint findings, dropped: none.
 
+### lfm2.5-8b-a1b
+
+````markdown
+@claude
+--model claude-opus (fails)
+Only @claude+opus-style tags worked, because only the tag went through resolve_model.
+
+Fix: resolve PRIMARY_MODEL the same way, so it reaches the CLI as the alias opus. Tagged pings resolve exactly as before:
+
+| trigger | before | after |
+|---|---|---|
+| @claude | --model claude-opus (fails) | --model opus |
+| @claude+opus | --model opus | --model opus |
+| @claude+opus-4.8 | --model claude-opus-4-8 | --model claude-opus-4-8 |
+
+The failed run (https://github.com/sgbaird/byu-finances/actions/runs/36251978652) showed claude-opus “may not exist or you may not have access to it”.
+````
+
+89 words, score +8.07, 5 lint findings, dropped: code: +model.
+
 ### qwen3.5-9b
 
 ````markdown
@@ -201,6 +336,22 @@ The issue came from https://github.com/sgbaird/byu-finances/actions/runs/3625197
 ````
 
 86 words, score -6.16, 0 lint findings, dropped: code: @claude+opus, @claude+opus-4.8.
+
+### gpt-oss-20b
+
+````markdown
+`@claude` without a `+model` tag passed `--model claude-opus` to the CLI, which rejects it with “There's an issue with the selected model (claude-opus)”. Every untagged ping therefore failed in under a minute. Only `@claude+opus`‑style tags worked because the tag is resolved via `resolve_model` to the alias `opus` before the CLI sees it.
+
+The fix is to resolve `PRIMARY_MODEL` the same way, so the CLI receives `--model opus`. After the change, tagged pings resolve exactly as before:
+
+- `@claude` now sends `--model opus` instead of `--model claude-opus`.
+- `@claude+opus` still sends `--model opus`.
+- `@claude+opus-4.8` still sends `--model claude-opus-4-8`.
+
+The issue was identified in the failed run https://github.com/sgbaird/byu-finances/actions/runs/36251978652, where the log said `claude-opus` “may not exist or you may not have access to it”.
+````
+
+123 words, score +0.63, 0 lint findings, dropped: none.
 
 ## Body of PR #1
 
@@ -278,6 +429,24 @@ This only covers the hand-maintained files. The profile cards and exemplar heade
 
 187 words, score -6.03, 1 lint findings, dropped: none.
 
+### qwen3.5-2b
+
+````markdown
+The output shows the writer's median here is 27, with a `writer/1k` column. I'm not sure if this means the same thing as "human-written passages," but the verdict "reads human" is clear. I think the build pipeline needs switching for the profile cards and exemplar headers, otherwise the next rebuild brings "the human median" back.
+
+48 tests pass; docs build clean with `sphinx -W`.
+
+**Note:** I kept the phrase "human-written passages" from the prompt since it's a specific term used in the rewrite. I also kept the number 27 and the command `sphinx -W`. I didn't add anything the draft didn't contain.
+
+- **Bold-run:** Bold emphasis. (uild clean with `sphinx -W`)
+- **References:** code span
+- **Score:** code span
+- **Yours/1k:** code span
+- **3:** number
+````
+
+126 words, score +1.84, 12 lint findings, dropped: code: references, score, yours/1k; numbers: 30.
+
 ### qwen3.5-4b
 
 ````markdown
@@ -289,6 +458,14 @@ We only hand-maintain files now. The profile cards and exemplar headers are gene
 ````
 
 80 words, score -3.84, 0 lint findings, dropped: numbers: 3, 30.
+
+### lfm2.5-8b-a1b
+
+````markdown
+Follow-up to #3. The rates come from one researcher's corpus, but human writing hedges 30 times more often than Claude, and the human median is 27. I might be unsure if this is the case, but it reads the writer's median here is 27, closer to the writer, and a writer/1k column, now one character wider so its header no longer runs into yours/1k. Hand‑maintained files only. The profile cards and exemplar headers are generated, so the build pipeline must switch them, or the next rebuild brings the human median back. All 48 tests pass; docs build clean with sphinx -W.
+````
+
+101 words, score -7.94, 0 lint findings, dropped: code: references, score.
 
 ### qwen3.5-9b
 
@@ -305,3 +482,19 @@ Follow-up to #3. 48 tests pass; docs build clean with `sphinx -W`.
 ````
 
 162 words, score -10.26, 2 lint findings, dropped: code: score; numbers: 30.
+
+### gpt-oss-20b
+
+````markdown
+The follow‑up to issue #3 notes that the rates come from a single researcher’s corpus. Issue #3 framed them as general facts (“Human writing hedges 30 times more often than Claude”, “the human median is 27”), but the README defines “the writer” as that researcher, so we refer to them instead.
+
+The package already uses the label reference for Claude’s side (the `references` rates, “the reference for most contexts is Claude's GitHub prose”), so using it for the human side would read backwards.
+* Literal terms such as “human‑written passages”, “a careful human writer”, and the verdict “reads human” are preserved.
+* The `score` output now prints “the writer's median here is 27”, “closer to the writer”, and adds a `writer/1k` column. The header is one character wider so it no longer overlaps `yours/1k`.
+
+Only hand‑maintained files changed; the profile cards and exemplar headers are generated, so the build pipeline must update them too, or the next rebuild will restore “the human median”.
+
+All 48 tests pass and the documentation builds cleanly with `sphinx -W`.
+````
+
+175 words, score -2.21, 1 lint findings, dropped: none.

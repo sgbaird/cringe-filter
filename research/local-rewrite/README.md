@@ -16,6 +16,47 @@ has an agent do it.
 before trusting the summary: the package scores style, and it does not
 check facts.
 
+## Results
+
+Speed on the runner (llama.cpp b11342, 4 threads, 4-bit weights). "Reads"
+is prompt processing and "writes" is generation, both in tokens per second.
+Per draft includes the revision pass when it ran.
+
+```
+model            weights   reads   writes   per draft
+Qwen3.5-2B        1.3 GB    95     15.2      35 s
+Qwen3.5-4B        2.7 GB    35      6.5      77 s
+Gemma 4 E4B       5.2 GB    27      6.5      no rewrite
+LFM2.5-8B-A1B     5.2 GB    56     18.5      39 s
+Qwen3.5-9B        5.7 GB    20      3.9     148 s
+Gemma 4 12B       7.0 GB    11      3.0      speed test only (llama-bench)
+gpt-oss-20b      12.1 GB    15      7.0     167 s, 2.5 GB of swap in use
+```
+
+Quality on the three drafts every model got (#4, #8, #13). Score is the
+median `score` log-odds, negative on the writer's side; the drafts
+themselves have a median of +9.69. Dropped counts the code spans, URLs,
+paths and numbers `preserve.py` tracks. Content kept is the share of the
+draft's content words that survive. Wrong is my read of each rewrite
+against its draft: a claim the draft doesn't make, a renamed identifier,
+or text too garbled to send.
+
+```
+model             score   writer side   lint errors   dropped   content kept   wrong
+Opus 5.5 (me)     -4.68   3 of 3        0             0 of 31   94%            0 of 3
+Qwen3.5-2B       -34.99   2 of 3        5             6         52%            3 of 3
+Qwen3.5-4B        -7.42   3 of 3        0             2         58%            2 of 3
+Gemma 4 E4B       +8.20   0 of 1        0             0         (copied)       1 of 1
+LFM2.5-8B-A1B     +3.69   1 of 3        0             3         74%            2 of 3
+Qwen3.5-9B        -9.33   3 of 3        1             4         77%            2 of 3
+gpt-oss-20b       +0.63   1 of 3        0             0         77%            1 of 3
+```
+
+On all six drafts, Qwen3.5-4B got four wrong and the reference none. Gemma
+4 E4B never produced a rewrite of #13. With thinking on it spent the whole
+budget thinking, and with thinking off it wrote a plan, the second time
+with the draft pasted in, which is why its content kept reads 100%.
+
 ## Rerun
 
 On a runner like the one in the issue (4 vCPU, 16 GB, no GPU):

@@ -7,9 +7,11 @@ from cringe_filter.score import score_text
 
 DRAFTS = {"pr13-body": "#13", "pr12-body": "#12", "pr3-body": "#3",
           "pr4-body": "#4", "pr1-body": "#1", "pr8-body": "#8"}
-MODELS = ["opus-self", "qwen3.5-2b", "qwen3.5-4b", "gemma-4-e4b", "lfm2.5-8b-a1b",
+MODELS = ["opus-self", "qwen3.5-2b", "qwen3.5-4b", "gemma-4-e4b-capped", "gemma-4-e4b", "lfm2.5-8b-a1b",
           "qwen3.5-9b", "gpt-oss-20b"]
-LABEL = {"opus-self": "Claude Opus 5.5, applying the same prompt by hand in one pass"}
+LABEL = {"opus-self": "Claude Opus 5.5, applying the same prompt by hand in one pass",
+         "gemma-4-e4b-capped": "gemma-4-e4b, reply capped at about twice the draft",
+         "gemma-4-e4b": "gemma-4-e4b, with 1200 more tokens of room"}
 
 
 def fence(text):

@@ -103,6 +103,7 @@ def main():
         cap = min(3000, int(len(src.split()) * 2.2) + 200)
         if "reasoning_effort" in json.dumps(extra):
             cap += 1500  # room for gpt-oss's reasoning, which cannot be switched off
+        cap += int(os.environ.get("CAP_EXTRA", "0"))  # for models that plan out loud
         client = Client(extra, cap)
         t0 = time.time()
         r = rewrite(src, "github", model=label, client=client)

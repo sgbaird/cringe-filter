@@ -17,7 +17,7 @@ def leaked(draft, label):
     system, _ = build_prompt(src, "github")
     return sorted((shingles(out) & shingles(system)) - shingles(src))
 
-order = ["opus-self", "qwen3.5-2b", "qwen3.5-4b", "gemma-4-e4b", "lfm2.5-8b-a1b", "qwen3.5-9b", "gpt-oss-20b"]
+order = ["opus-self", "qwen3.5-2b", "qwen3.5-4b", "gemma-4-e4b-capped", "gemma-4-e4b", "lfm2.5-8b-a1b", "qwen3.5-9b", "gpt-oss-20b"]
 rows = {}
 for p in glob.glob("results/*.jsonl"):
     for line in open(p):
