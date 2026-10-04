@@ -1,0 +1,34 @@
+name: Docs lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -e .
+      # Every doc, SKILL.md included. Exits 1 on any error-level finding.
+      - name: Lint docs (errors fail)
+        run: cringe-filter lint -c tutorial --no-color README.md SKILL.md docs/*.md
+      # README and docs/ must also be free of warnings. SKILL.md is left out
+      # because it still has 3 (heading-bold-lead-in, not-just-but, plainly).
+      - name: Lint README and docs (warnings fail too)
+        run: |
+          cringe-filter lint -c tutorial --json README.md docs/*.md > findings.json
+          python - <<'PY'
+          import json, sys
+          bad = [f for f in json.load(open("findings.json")) if f["severity"] in ("error", "warn")]
+          for f in bad:
+              print(f'::error file={f["file"]},line={f["line"]}::{f["rule"]}: {f["message"]}')
+          sys.exit(1 if bad else 0)
+          PY
