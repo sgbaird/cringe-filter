@@ -53,6 +53,40 @@ NOT_VERB = ("the|a|an|this|that|these|those|my|your|our|his|her|their|its|me|you
             "six|seven|eight|nine|ten|about|around|date|do|be|get|have|see")
 TO_VERB = re.compile(r"\bto\s+(?!(?:%s)\b)[a-z]{2,}\b" % NOT_VERB)
 TO_COMMON = re.compile(r"\bto\s+(?:do|be|get|have|see)\b", re.I)
+_FENCE = re.compile(r"^\s{0,3}(`{3,}|~{3,})")
+
+
+def colon_blocks(text):
+    """(blocks, how many of them a colon introduces), from the raw text.
+
+    A block is a fenced code block, a list or a table, counted once. It is
+    introduced by a colon when the last line of text before it ends in one
+    ("Run this:", "**Changes:**"). The share measures the habit itself; the
+    "colon before block" tell counts the same lines per 1000 words, which
+    mostly measures how many blocks a page has, so a docs page with few
+    code blocks read as Claude's."""
+    blocks = colon = 0
+    prev, kind, fence = "", None, None
+    for line in text.split("\n"):
+        if fence:
+            if line.strip().startswith(fence):
+                fence, prev = None, line
+            continue
+        if not line.strip():
+            kind = None if kind == "table" else kind
+            continue
+        m = _FENCE.match(line)
+        new = ("code" if m else "table" if _TABLE.match(line)
+               else "list" if _ITEM.match(line) else None)
+        if new and new != kind:
+            blocks += 1
+            colon += prev.rstrip(" \t*_").endswith(":")
+        if m:
+            fence, new = m.group(1), None
+        elif not new and kind == "list" and line[:1] in (" ", "\t"):
+            new = "list"  # a wrapped list item
+        kind, prev = new, line
+    return blocks, colon
 
 
 def blocks(text):
@@ -117,9 +151,10 @@ def openers(sent):
 def measure(text):
     """Counts and denominators for one text.
 
-    Returns {"sentences", "prose_paragraphs", "words", "list_words", and a
-    count per feature}. Features are counted over prose sentences only;
-    list items, headers and table rows count toward list_words."""
+    Returns {"sentences", "prose_paragraphs", "words", "list_words",
+    "blocks", and a count per feature}. Features are counted over prose
+    sentences only; list items, headers and table rows count toward
+    list_words. Blocks are read from the text before code is stripped."""
     cleaned = clean(text)
     paras = blocks(cleaned)
     c = {"sentences": 0, "prose_paragraphs": 0, "one_sentence_paragraphs": 0,
@@ -127,6 +162,7 @@ def measure(text):
          "number_open": 0, "conjunction_open": 0, "adverb_open": 0, "question": 0,
          "modal": 0, "to_verb": 0, "colon": 0, "semicolon": 0, "dash": 0, "paren": 0,
          "sentence_words": 0}
+    c["blocks"], c["colon_block"] = colon_blocks(text)
     for units in paras:
         prose_only = all(k == "prose" for k, _ in units)
         n_in_para = 0
@@ -174,6 +210,7 @@ FEATURES = {
     "sentence_words": ("sentences", "words per sentence"),
     "one_sentence_paragraphs": ("prose_paragraphs", "one-sentence paragraphs"),
     "list_words": ("words", "words in lists, tables and headers"),
+    "colon_block": ("blocks", "lists, tables and code blocks a colon introduces"),
 }
 
 

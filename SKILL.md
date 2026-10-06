@@ -64,7 +64,7 @@ behind them are in `--evidence`). Read the passages first. Then rewrite
 your draft to match, keeping every fact, link and number. The five things
 the linter cannot check:
 
-- **Length.** The writer's median GitHub reply is 28 words; Claude's is 636. Cut to
+- **Length.** The writer's median GitHub reply is 27 words; Claude's is 638. Cut to
   the shortest version that answers the question.
 - **Stance.** Hedge where the fact is uncertain ("might be", "not sure
   if", "seems to") and nowhere else. The writer hedges 30 times more often than

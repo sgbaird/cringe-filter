@@ -64,13 +64,15 @@ def score_text(text, context="any"):
         c = ref["mechanical"].get(f"{key}_per_1k", 0) or 0
         feats.append({"feature": label, "n": n,
                       "per_1k": round(1000 * n / words, 2),
-                      "sterling_per_1k": s, "claude_per_1k": c,
+                      "writer_per_1k": s, "claude_per_1k": c,
                       "log_odds": round(llr(n, words, s, c), 3),
                       "kind": "stance" if (key, label) in STANCE else "format"})
 
     own = reg.get("candidate_per_1k") or {}
+    covered = COVERED | ({"colon before block"} if has_share(reg, ref, "colon_block")
+                         else set())
     for phrase, t in p["tells"].items():
-        if phrase in COVERED or not t.get("significant"):
+        if phrase in covered or not t.get("significant"):
             continue
         rx = re.compile(t["pattern"], re.I | re.M)
         n = len(rx.findall(cleaned))
@@ -80,7 +82,7 @@ def score_text(text, context="any"):
             continue
         feats.append({"feature": phrase, "n": n,
                       "per_1k": round(1000 * n / words, 2),
-                      "sterling_per_1k": s, "claude_per_1k": c,
+                      "writer_per_1k": s, "claude_per_1k": c,
                       "log_odds": round(llr(n, words, s, c), 3),
                       "kind": "tell"})
 
@@ -96,7 +98,7 @@ def score_text(text, context="any"):
     if total > 2:
         verdict = "reads like Claude"
     elif total < -2:
-        verdict = "reads human"
+        verdict = "reads like the writer"
     else:
         verdict = "in between"
     feats.sort(key=lambda f: -abs(f["log_odds"]))
@@ -116,6 +118,8 @@ def score_text(text, context="any"):
         "logistic_of_log_odds": round(logistic, 3),
         "calibrated": False,
         "candidate_rates_measured": bool(reg.get("candidate_rates_measured", True)),
+        "structure_rates_measured": all((r.get("structure") or {}).get("rates")
+                                        for r in (reg, ref)),
         "verdict": verdict, "features": feats, "delta": delta,
         "note": ("Style score: Poisson log-likelihood ratio of Claude's GitHub "
                  "rates over the writer's rates in this register, summed over "
@@ -129,19 +133,28 @@ def score_text(text, context="any"):
 # count: questions are a stance marker, list words are bullets and tables.
 STRUCTURE = ("person_open", "determiner_open", "number_open", "conjunction_open",
              "adverb_open", "modal", "to_verb", "colon", "semicolon", "dash",
-             "paren", "one_sentence_paragraphs")
+             "paren", "one_sentence_paragraphs", "colon_block")
 SHARES = {"person_open", "determiner_open", "number_open", "conjunction_open",
-          "adverb_open", "one_sentence_paragraphs"}
+          "adverb_open", "one_sentence_paragraphs", "colon_block"}
+
+
+def has_share(reg, ref, key):
+    """Whether both sides carry a structure rate for key. A profile built
+    before colon_block existed has none, and the per-word "colon before
+    block" row stands in for it until a rebuild measures the share."""
+    return all(((r.get("structure") or {}).get("rates") or {}).get(key) is not None
+               for r in (reg, ref))
 
 
 def structure_features(text, reg, ref):
     """How the draft's sentences are built, against both writers.
 
-    A share (sentences opening on a person, one-sentence paragraphs) is
-    scored as a binomial log-likelihood ratio over the draft's sentences or
-    paragraphs, and a count per sentence (modals, colons) as a Poisson one,
-    the same way the word markers are. Registers without structure rates
-    (email, tutorials, manuscripts) score nothing here."""
+    A share (sentences opening on a person, one-sentence paragraphs, blocks
+    a colon introduces) is scored as a binomial log-likelihood ratio over
+    the draft's sentences, paragraphs or blocks, and a count per sentence
+    (modals, colons) as a Poisson one, the same way the word markers are.
+    Registers without structure rates (email, tutorials) score nothing
+    here."""
     writer = (reg.get("structure") or {}).get("rates")
     cl = (ref.get("structure") or {}).get("rates")
     if not writer or not cl:
@@ -164,11 +177,11 @@ def structure_features(text, reg, ref):
             lo = n * math.log(lc / ls) - d * (lc - ls)
         out.append({"feature": label, "n": n, "of": d,
                     "per_1k": round(1000 * n / d, 2),
-                    "sterling_per_1k": round(1000 * s_rate, 2),
+                    "writer_per_1k": round(1000 * s_rate, 2),
                     "claude_per_1k": round(1000 * c_rate, 2),
                     "log_odds": round(lo, 3), "kind": "structure",
-                    "unit": "per 1000 " + ("paragraphs" if den_key == "prose_paragraphs"
-                                           else "sentences")})
+                    "unit": "per 1000 " + {"prose_paragraphs": "paragraphs",
+                                           "blocks": "blocks"}.get(den_key, "sentences")})
     return out
 
 
@@ -201,9 +214,12 @@ def burrows_delta(cleaned, reg, ref, mfw):
 
     to_reg = dist(reg["mfw_mean"])
     to_claude = dist(ref["mfw_mean"])
+    # Decided on the two decimals format_score prints, so distances that
+    # print the same are a tie, not closer to one side.
+    a, b = round(round(to_reg, 3), 2), round(round(to_claude, 3), 2)
     return {"to_register": round(to_reg, 3), "to_claude": round(to_claude, 3),
             "margin": round(to_claude - to_reg, 3),
-            "closer_to": "register" if to_reg < to_claude else "claude",
+            "closer_to": "register" if a < b else "claude" if b < a else "tie",
             "n_features": len(words), "n_tokens": len(toks)}
 
 
@@ -215,6 +231,9 @@ def format_score(r, top=12):
     if not r.get("candidate_rates_measured", True):
         lines.append("note: this register has no measured phrase rates of its "
                      "own; phrase rows use the GitHub-wide rates")
+    if not r.get("structure_rates_measured", True):
+        lines.append("note: this register has no structure rates, so no row "
+                     "checks how the sentences are built")
     L = r.get("length")
     if L:
         flag = "  [over budget]" if L["over_budget"] else ""
@@ -223,15 +242,19 @@ def format_score(r, top=12):
                      f"{L['budget_words']}{flag}")
     d = r.get("delta")
     if d:
-        who = "the writer" if d["closer_to"] == "register" else "Claude"
+        who = {"register": "closer to the writer", "claude": "closer to Claude"}
         lines.append(f"Burrows' Delta over the {d['n_features']} most frequent "
                      f"words: {d['to_register']:.2f} to the writer's register, "
-                     f"{d['to_claude']:.2f} to Claude (closer to {who})")
+                     f"{d['to_claude']:.2f} to Claude "
+                     f"({who.get(d['closer_to'], 'a tie')})")
     lines.append(f"{'feature':44s}{'n':>4s}{'yours/1k':>10s}{'writer/1k':>10s}"
                  f"{'Claude/1k':>11s}{'log-odds':>10s}")
-    lines.append("(per 1000 words; structure rows per 1000 sentences or prose paragraphs)")
+    per = ("sentences, prose paragraphs or blocks"
+           if any(f.get("unit") == "per 1000 blocks" for f in r["features"][:top])
+           else "sentences or prose paragraphs")
+    lines.append(f"(per 1000 words; structure rows per 1000 {per})")
     for f in r["features"][:top]:
         lines.append(f"{f['feature'][:43]:44s}{f['n']:4d}{f['per_1k']:10.2f}"
-                     f"{f['sterling_per_1k']:10.2f}{f['claude_per_1k']:11.2f}"
+                     f"{f['writer_per_1k']:10.2f}{f['claude_per_1k']:11.2f}"
                      f"{f['log_odds']:+10.2f}")
     return "\n".join(lines)

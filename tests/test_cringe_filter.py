@@ -44,11 +44,77 @@ class Lint(unittest.TestCase):
         self.assertFalse(any(x["rule"] == "md-header" for x in lint_text(text, "tutorial")))
         self.assertFalse(any(x["rule"] == "md-header" for x in lint_text(text, "third-party")))
 
+    def test_lint_flags_the_tables_the_prompt_forbids(self):
+        for ctx in ("github", "discussion", "third-party", "email", "message",
+                    "linkedin", "tutorial"):
+            system, _ = build_prompt("x", ctx)
+            if "no tables" in system or "without headers, tables" in system:
+                self.assertIn("md-table", {r.key for r in rules_for(ctx)}, ctx)
+
     def test_suppression(self):
         text = "A thing — another. <!-- cringe-filter: disable-line em-dash -->"
         self.assertFalse(any(x["rule"] == "em-dash" for x in lint_text(text, "github")))
         text = "<!-- cringe-lint: disable-file -->\nA thing — another."
         self.assertEqual(lint_text(text, "github"), [])
+
+    def test_suppression_shown_in_code_does_not_apply(self):
+        # A README that documents the syntax must still be linted.
+        text = ("Skip a file with:\n\n```markdown\n"
+                "<!-- cringe-filter: disable-file -->\n```\n\nA thing — another.")
+        self.assertTrue(any(x["rule"] == "em-dash" for x in lint_text(text, "tutorial")))
+        text = "Use `<!-- cringe-filter: disable-line -->`. A thing — another."
+        self.assertTrue(any(x["rule"] == "em-dash" for x in lint_text(text, "tutorial")))
+        text = "A thing --- another. % cringe-filter: disable-line em-dash"
+        self.assertFalse(any(x["rule"] == "em-dash"
+                             for x in lint_text(text, "paper", "draft.tex")))
+
+    def test_readme_passes_its_own_linter(self):
+        root = os.path.dirname(HERE)
+        with open(os.path.join(root, "README.md"), encoding="utf-8") as f:
+            text = f.read()
+        found = lint_text(text, "tutorial", "README.md")
+        self.assertEqual([x for x in found if x["severity"] != "info"], [])
+        # Linted, not skipped: a tell added at the end is still found.
+        found = lint_text(text + "\nA thing — another.\n", "tutorial", "README.md")
+        self.assertTrue(any(x["rule"] == "em-dash" for x in found))
+
+    def test_long_sentence_stays_in_its_paragraph(self):
+        words = " ".join(["word"] * 34)  # the tutorial p90 is 35
+        # A heading, or a line that introduces a code block, is not part of
+        # the sentence after it.
+        text = (f"## A heading of six words\n\n{words}.\n\n"
+                f"Run this:\n\n```\nls\n```\n\n{words}.")
+        self.assertFalse([x for x in lint_text(text, "tutorial")
+                          if x["rule"] == "long-sentence"])
+        # Masked inline code does not lose the line.
+        text = f"Short.\n\nThen `run it` and {words} {words}."
+        f = [x for x in lint_text(text, "tutorial") if x["rule"] == "long-sentence"]
+        self.assertEqual([x["line"] for x in f], [3])
+        self.assertIn("`run it`", f[0]["snippet"])
+
+    def test_quoted_pattern_is_a_mention(self):
+        text = ("Avoid the \"it isn't X, it's Y\" frame and the “X, not Y” "
+                "correction.")
+        rules = {x["rule"] for x in lint_text(text, "tutorial")}
+        self.assertFalse(rules & {"isnt-x-its-y", "x-not-y"}, rules)
+        rules = {x["rule"] for x in lint_text("It isn't a hack, it's the real fix.",
+                                              "tutorial")}
+        self.assertIn("isnt-x-its-y", rules)
+
+    def test_repeated_phrase(self):
+        text = ("The score is a ranking of what to fix, not a probability. "
+                "Read it as a ranking of what to fix, not as a verdict.")
+        f = [x for x in lint_text(text, "tutorial") if x["rule"] == "repeated-phrase"]
+        self.assertEqual([(x["match"], x["severity"]) for x in f],
+                         [("a ranking of what to fix, not", "info")])
+        # Six words, or seven with a sentence end inside, are not a repeat.
+        text = ("We ran it on the Pi today. We ran it on the Pi. Then "
+                "it failed. Then it failed again and again.")
+        self.assertFalse([x for x in lint_text(text, "tutorial")
+                          if x["rule"] == "repeated-phrase"])
+        # A repeat that overlaps itself is one finding, not one per word.
+        f = [x for x in lint_text("ha " * 30, "tutorial") if x["rule"] == "repeated-phrase"]
+        self.assertEqual(len(f), 1)
 
     def test_length_budget(self):
         long = " ".join(["word"] * 400) + "."
@@ -110,6 +176,18 @@ class Score(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(score_text("", "github")["verdict"], "empty")
 
+    def test_delta_tie_and_writer_wording(self):
+        from cringe_filter.score import burrows_delta, format_score
+        mfw = {"words": ["the"], "pooled_mean": [0.0], "pooled_std": [1.0]}
+        d = burrows_delta("the cat", {"mfw_mean": [490.0]}, {"mfw_mean": [510.0]}, mfw)
+        self.assertEqual((d["to_register"], d["to_claude"], d["closer_to"]),
+                         (10.0, 10.0, "tie"))
+        r = score_text(STERLING_ISH, "github")
+        self.assertEqual(r["verdict"], "reads like the writer")
+        self.assertNotIn("sterling", json.dumps(r))
+        r["delta"] = d
+        self.assertIn("(a tie)", format_score(r))
+
 
 class Prompt(unittest.TestCase):
     def test_contains_exemplar_and_label(self):
@@ -124,6 +202,21 @@ class Prompt(unittest.TestCase):
         self.assertLess(len(system.split()), 1200)
         _, _, evidence = build_prompt("Some text.", "github", with_evidence=True)
         self.assertIn("em-dash", evidence)
+
+    def test_tutorial_examples_are_docs_pages(self):
+        # Docs pages, not issue comments: no duplicates, and no holes where a
+        # link or code span was cut out.
+        from cringe_filter.prompt import pick_exemplars
+        reg = profile()["registers"]["tutorial"]
+        self.assertEqual(reg["exemplars"], ["tutorial.md"])
+        bank = exemplars("tutorial.md")
+        texts = [e["text"] for e in bank]
+        self.assertGreaterEqual(len(texts), 8)
+        self.assertEqual(len(set(texts)), len(texts))
+        for t in texts:
+            self.assertNotRegex(t, r"\S {2,}\S", t[:60])
+        for p in pick_exemplars(reg, "tutorial", 2):
+            self.assertTrue(any(t.startswith(p[:200]) for t in texts))
 
     def test_paper_has_no_latinate_rule(self):
         system, _ = build_prompt("x", "paper")
@@ -186,6 +279,33 @@ class Structure(unittest.TestCase):
         self.assertEqual(c["one_sentence_paragraphs"], 2)
         self.assertEqual(c["list_words"], 8)        # two items and a header, markers included
 
+    def test_colon_blocks(self):
+        from cringe_filter.structure import colon_blocks, measure, rates
+        text = ("Run this:\n\n```bash\nls\n```\n\n**Changes:**\n- one\n- two\n"
+                "  wrapped\n\nSome prose.\n\n| a | b |\n| - | - |\n")
+        self.assertEqual(colon_blocks(text), (3, 2))
+        self.assertEqual(rates(measure(text))["colon_block"], 0.6667)
+
+    def test_colon_share_replaces_the_per_word_row(self):
+        import copy
+        from cringe_filter import bundle
+        text = "Run this:\n\n```\nls\n```\n\nThen check the log.\n\n- one\n- two\n"
+        before = {f["feature"] for f in score_text(text, "github")["features"]}
+        self.assertIn("colon before block", before)
+        # A rebuild that measures the share carries it for both sides.
+        p = bundle.profile()
+        saved = copy.deepcopy(p)
+        try:
+            p["registers"]["github"]["structure"]["rates"]["colon_block"] = 0.5
+            p["reference"]["structure"]["rates"]["colon_block"] = 0.9
+            feats = {f["feature"]: f for f in score_text(text, "github")["features"]}
+        finally:
+            p.clear()
+            p.update(saved)
+        self.assertNotIn("colon before block", feats)
+        row = feats["lists, tables and code blocks a colon introduces"]
+        self.assertEqual((row["n"], row["of"], row["unit"]), (1, 2, "per 1000 blocks"))
+
     def test_prompt_line_is_default_and_data_driven(self):
         s, _ = build_prompt("x", "github", structure=False)
         self.assertNotIn("Make a person the subject", s)
@@ -211,6 +331,11 @@ class Structure(unittest.TestCase):
         self.assertLess(ss, 0)
         e = score_text("The parser drops the last row.", "email")
         self.assertFalse([f for f in e["features"] if f["kind"] == "structure"])
+        # The score says so, instead of leaving the rows out silently.
+        from cringe_filter.score import format_score
+        self.assertFalse(e["structure_rates_measured"])
+        self.assertIn("no structure rates", format_score(e))
+        self.assertTrue(c["structure_rates_measured"])
 
 
 class Contexts(unittest.TestCase):

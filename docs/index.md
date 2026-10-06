@@ -6,5 +6,7 @@
 
 cli
 api
+methods
+MCP server <mcp>
 Coding-agent skill <skill>
 ```
