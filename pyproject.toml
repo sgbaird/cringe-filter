@@ -23,7 +23,8 @@ dependencies = []
 
 [project.optional-dependencies]
 rewrite = ["anthropic>=0.40"]
-test = ["pytest"]
+mcp = ["mcp>=2.2,<3"]
+test = ["pytest", "mcp>=2.2,<3; python_version >= '3.10'"]
 docs = ["sphinx>=7", "myst-parser>=3", "furo"]
 
 [project.urls]

@@ -25,7 +25,7 @@ html_title = f"cringe-filter {release}"
 autodoc_member_order = "bysource"
 
 COMMANDS = ["lint", "score", "prompt", "rewrite", "audit",
-            "instructions", "contexts", "profile"]
+            "instructions", "contexts", "profile", "mcp"]
 
 
 def _help(argv):

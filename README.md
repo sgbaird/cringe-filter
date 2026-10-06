@@ -285,7 +285,8 @@ An agent that drafts prose is already a model, so it does not need
 [SKILL.md](https://github.com/sgbaird/cringe-filter/blob/main/SKILL.md)
 is a Claude Code skill that has the agent run `lint` and `prompt` and then
 fix its own draft. Copy it to `.claude/skills/cringe-filter/SKILL.md` in
-any repository where this package is installed.
+any repository where this package is installed. Clients without skills
+can use the [MCP server](https://github.com/sgbaird/cringe-filter/blob/main/docs/mcp.md).
 
 ## Where the numbers come from
 
