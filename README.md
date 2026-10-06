@@ -12,8 +12,9 @@ reviews with 1.35M words Claude wrote in the same threads. The writer's
 Discussions posts, LinkedIn posts, email, messages, papers and tutorials
 cover the other contexts. The `lint` rules describe Claude's habits, so
 they work on anyone's draft. `score` and `prompt` go further and pull a
-draft toward the writer's own habits for that kind of text, so treat
-those as one careful person's practice. While this is hyper-specific to a single writer, the package comes with the option to replace the default corpus with custom content (i.e., your own).
+draft toward the writer's own habits for that kind of text. While this
+is hyper-specific to a single writer, the package comes with the option
+to replace the default corpus with custom content (i.e., your own).
 
 Python 3.9+. The optional `rewrite`
 command also needs the `anthropic` package.
@@ -217,10 +218,8 @@ cringe-filter rewrite -c paper --minimal draft.tex      # edit, do not rewrite
 If the result still has lint errors or measured warnings, or it dropped a
 number, link, code span or path (in LaTeX, also a citation, reference or
 math span), `rewrite` makes one more pass. It stops at two model calls,
-because repeated self-revision makes good text worse.
-Length alone does not trigger the second pass. In a held-out test, each
-revision made for length cut about 6% of the source's content words and
-moved no classifier toward the writer.
+because repeated self-revision makes good text worse. Length alone does
+not trigger the second pass.
 
 The default model is `claude-opus-5` with adaptive thinking at medium
 effort. A declined request is re-run on the server-side fallback model
@@ -230,9 +229,7 @@ count, scores and remaining findings go to stderr.
 Use `--minimal`, on `rewrite` or `prompt`, for a draft headed to review,
 like a manuscript or a proposal. It asks for the smallest edit a reviewer
 would make, from the draft's lint findings and a short checklist of what
-the lab's reviewers asked agents to change. On 74 agent drafts that
-people later corrected, a full rewrite moved the text away from the
-reviewer's version. The minimal edit did not.
+the lab's reviewers asked agents to change.
 
 ### audit
 
@@ -297,7 +294,7 @@ live in a private repository, because the corpus includes mail and direct
 messages. Each rebuild opens a pull request here, so the rules follow the
 data without anyone editing them. The example passages in the package
 come only from public repositories and public LinkedIn posts. Mail and
-messages contribute counts and nothing else.
+messages contribute only counts.
 
 To use your own profile, point `CRINGE_FILTER_PROFILE` at it. An
 `exemplars/` folder next to it replaces the packaged passages that have
