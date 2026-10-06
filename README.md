@@ -12,10 +12,11 @@ reviews with 1.35M words Claude wrote in the same threads. The writer's
 Discussions posts, LinkedIn posts, email, messages, papers and tutorials
 cover the other contexts. The `lint` rules describe Claude's habits, so
 they work on anyone's draft. `score` and `prompt` go further and pull a
-draft toward the writer's own habits for that kind of text, so treat
-those as one careful person's practice.
+draft toward the writer's own habits for that kind of text. While this
+is hyper-specific to a single writer, the package comes with the option
+to replace the default corpus with custom content (i.e., your own).
 
-It needs Python 3.9 or later and nothing else. The optional `rewrite`
+Python 3.9+. The optional `rewrite`
 command also needs the `anthropic` package.
 
 ## Install
@@ -32,7 +33,7 @@ uvx cringe-filter contexts
 
 ## Quick start
 
-Here is a GitHub reply with four of Claude's habits in it, saved as
+Here is a GitHub reply with four of Claude's quirks in it, saved as
 `reply.md`:
 
 ```markdown
@@ -73,7 +74,7 @@ guard there fixes it for you?
 
 ## Contexts
 
-You write differently in a GitHub reply and in a paper, so every command
+People typically write differently in a GitHub reply vs. an academic manuscript, so every command
 takes a context, each with its own length budget, formatting rules and
 example passages:
 
@@ -171,7 +172,7 @@ isn't X it's Y                                 1     40.00      0.03       0.12 
 ...
 ```
 
-Positive reads like Claude. The rewritten reply scores -21.12. Each row
+"Positive" tends to read more like Claude. The rewritten reply scores -21.12. Each row
 is a log-likelihood ratio of Claude's rate against the writer's, and the
 rows overlap, so use the total to decide what to fix first. It is not a
 probability, and the JSON output says `calibrated: false`.
@@ -217,10 +218,8 @@ cringe-filter rewrite -c paper --minimal draft.tex      # edit, do not rewrite
 If the result still has lint errors or measured warnings, or it dropped a
 number, link, code span or path (in LaTeX, also a citation, reference or
 math span), `rewrite` makes one more pass. It stops at two model calls,
-because repeated self-revision makes good text worse.
-Length alone does not trigger the second pass. In a held-out test, each
-revision made for length cut about 6% of the source's content words and
-moved no classifier toward the writer.
+because repeated self-revision makes good text worse. Length alone does
+not trigger the second pass.
 
 The default model is `claude-opus-5` with adaptive thinking at medium
 effort. A declined request is re-run on the server-side fallback model
@@ -230,9 +229,7 @@ count, scores and remaining findings go to stderr.
 Use `--minimal`, on `rewrite` or `prompt`, for a draft headed to review,
 like a manuscript or a proposal. It asks for the smallest edit a reviewer
 would make, from the draft's lint findings and a short checklist of what
-the lab's reviewers asked agents to change. On 74 agent drafts that
-people later corrected, a full rewrite moved the text away from the
-reviewer's version. The minimal edit did not.
+the lab's reviewers asked agents to change.
 
 ### audit
 
@@ -297,7 +294,7 @@ live in a private repository, because the corpus includes mail and direct
 messages. Each rebuild opens a pull request here, so the rules follow the
 data without anyone editing them. The example passages in the package
 come only from public repositories and public LinkedIn posts. Mail and
-messages contribute counts and nothing else.
+messages contribute only counts.
 
 To use your own profile, point `CRINGE_FILTER_PROFILE` at it. An
 `exemplars/` folder next to it replaces the packaged passages that have
@@ -322,11 +319,12 @@ python -m unittest discover -s tests
   email that way asks whether it reads like the model or like the
   writer's email, which is useful, but the two are different genres.
 - Papers and proposals are scored against Claude's own manuscripts and
-  agents' proposals. The writer's side of `proposal` rests on two
-  proposals, so treat that score as a hint.
-- Small contexts carry little signal for rare phrases. LinkedIn has 89
+  agents' proposals. The default writer's side of `proposal` is based on two
+  proposals.
+- These have primarily been based on interactions with Opus 4.8, 5, 5.1, 5.5, and Fable 5, 5.1. As new models are released, behavior will vary (hopefully improving).
+- Small contexts carry little signal for rare phrases. The LinkedIn corpus has 89
   posts, and where a context has no verdict for a phrase, `lint` falls
   back to the verdict for the whole corpus.
-- A low score proves nothing, and getting past AI detectors is not the
+- Getting past AI detectors is not the
   goal. The better test: would this sound pretentious to someone who
   already knows what they are doing?
