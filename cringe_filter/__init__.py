@@ -22,4 +22,4 @@ from .score import score_text  # noqa: F401
 from .prompt import build_prompt, build_minimal_prompt  # noqa: F401
 from .registers import resolve, infer_context  # noqa: F401
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

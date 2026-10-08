@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cringe-filter"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Strip AI tells from prose: a linter, scorer and prompt builder measured on 1.9M words of human vs. Claude writing"
 readme = "README.md"
 license = {text = "MIT"}
@@ -41,3 +41,6 @@ include = ["cringe_filter*"]
 
 [tool.setuptools.package-data]
 cringe_filter = ["data/*.json", "data/exemplars/*.md"]
+
+[tool.setuptools.dynamic]
+version = {attr = "cringe_filter.__version__"}
