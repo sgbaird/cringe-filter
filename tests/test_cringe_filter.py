@@ -131,9 +131,38 @@ class Lint(unittest.TestCase):
             self.assertEqual(len(found), 1, text)
             self.assertEqual(found[0]["severity"], "info")
         for text in ("We ran two options of the solver and both converged.",
-                     "The referee raised three points about the baseline."):
+                     "The referee raised three points about the baseline.",
+                     "The two options are a furnace and a kiln."):
             self.assertFalse(any(x["rule"] == "count-opener"
                                  for x in lint_text(text, "email")), text)
+
+    def test_draft_tells(self):
+        # What a read of agent email drafts found after lint passed them.
+        # Each is preventive, so it reports at info.
+        yes = {"count-opener": "Quick replies to your three questions.",
+               "label-lead-in": "Hi Ann,\n\n1. Budget (March). I can cover it.\n2. Travel. Booked.",
+               "summary-scaffold": "The short version: it works on the bench.",
+               "honest-read": "My honest read is that the fit is too loose.",
+               "point-landed": "Your point about the baseline landed.",
+               "earn-its-place": "The optimizer picks which samples earn the costly steps.",
+               "spotlight-cleft": "The piece I can't build is the controller.",
+               "readers-role": "This is exactly your area.",
+               "inexcusable": "The delay was inexcusable.",
+               "one-the-other": "Two parts fit your group. One is the furnace. The other is the scale."}
+        no = {"label-lead-in": "Steps:\n\n1. Install it. Then run the tests.\n2. Open the log.",
+              "summary-scaffold": "We met briefly, then left. A short version of the talk is up.",
+              "point-landed": "The drone landed on the pad. The data points land on the curve.",
+              "earn-its-place": "Students earn credit for the lab.",
+              "spotlight-cleft": "The part I printed is warped.",
+              "readers-role": "That is your call."}
+        for rule, text in yes.items():
+            found = [x for x in lint_text(text, "email") if x["rule"] == rule]
+            self.assertTrue(found, rule)
+            self.assertEqual({x["severity"] for x in found}, {"info"}, rule)
+        for rule, text in no.items():
+            self.assertFalse([x for x in lint_text(text, "email") if x["rule"] == rule], rule)
+        # A label list is the writer's own habit where the writer bullets often.
+        self.assertNotIn("label-lead-in", {r.key for r in rules_for("github")})
 
     def test_contra_rules_are_off(self):
         # "ensure" runs higher in the writer's prose than in Claude's; it must not fire.
