@@ -35,6 +35,7 @@ FORMAT_OWN_RATE_MAX = 3.0
 
 # Formatting rule -> the mechanical marker that carries the writer's rate.
 FORMAT_MARKER = {"bold-run": "bold_md_per_1k", "bold-lead-in": "bold_md_per_1k",
+                 "label-lead-in": "bullet_md_per_1k",
                  "md-header": "header_md_per_1k",
                  "bullet-line": "bullet_md_per_1k", "md-table": "table_md_per_1k",
                  "checkbox": "checkbox_md_per_1k"}
@@ -112,6 +113,77 @@ AGENT = {
     "check glyph": r"[✓✔✗✘☑]",
     "spaced hyphen as dash": r"(?<=[A-Za-z0-9)\]'\"]) - (?=[A-Za-z(\"'])",
     "ALL-CAPS imperative": r"(?-i:\b(?:IMPORTANT|CRITICAL|NEVER|ALWAYS|MUST)\b)",
+}
+# "Three things in one note.", "Two quick questions:", "A few updates,",
+# "Quick answers to your three questions.": a short count of what follows,
+# standing as its own sentence or clause.
+COUNT_OPENER = (r"(?:^|(?<=[.!?]\s))(?:(?:just|here are|i have|i've got|"
+                r"(?:(?:short|quick|brief)\s+)?(?:answers?|replies|responses)\s+to)\s+"
+                r"(?:(?:my|our|your|the|both|all)\s+)?)?"
+                r"(?:two|three|four|five|six|a few|a couple of|several|\d)\s+"
+                r"(?:(?:quick|related|small|short|separate|brief|more|other)\s+)?"
+                r"(?:things|questions|items|points|updates|options|notes|asks|"
+                r"requests|topics)\b[^.!?:,\n]{0,24}[.:,]")
+# Verbs that start an instruction ("1. Install it. Then..."), and words that
+# start a sentence, so a list of steps or of short answers is not read as
+# a list of labels.
+_STEP = (r"add|apply|ask|build|call|change|check|click|clone|close|commit|compare|"
+         r"confirm|copy|create|delete|download|edit|enter|fill|find|fix|follow|get|"
+         r"give|go|install|keep|let|list|load|log|look|make|merge|move|open|paste|"
+         r"pick|plot|print|pull|push|put|read|remove|rename|replace|reply|review|"
+         r"run|save|see|select|send|set|sign|start|stop|submit|switch|take|tell|"
+         r"test|try|turn|update|upload|use|wait|write|"
+         r"i|we|it|this|that|they|you|he|she|there|here|yes|no|thanks|done")
+# Lint passed 24 agent-written emails in October 2026 (18 drafts and 6
+# already saved to a mailbox). The writer flagged a count opener in one,
+# and a read of all 24 against Wikipedia's "Signs of AI writing" found
+# these. 11 of the 24 emails have at least one; no passage in the example
+# banks has any. None has a measurement yet, so each is preventive and
+# stays at info until a profile rebuild measures it.
+DRAFT = {
+    # The plain-text form of the bold lead-in: "1. Budget. We can...",
+    # "2. Travel (March). I'm in." It came with the count opener every time.
+    "label lead-in": (r"^[ \t]*(?:\d+[.)]|[-*+])[ \t]+(?!(?:" + _STEP + r")\b)"
+                      r"[A-Za-z][\w&/'’+-]*(?:[ \t]+[A-Za-z0-9][\w&/'’+-]*){0,3}"
+                      r"(?:[ \t]*\([^()\n]{1,80}\))?\.[ \t]+(?=(?-i:[A-Z]))"),
+    "summary scaffold": (r"(?:^|(?<=[.!?]\s))(?:(?:the|my)\s+)?(?:short|quick|long)\s+"
+                         r"(?:answer|version|story)(?:\s+so\s+far)?(?:\s*[:,]|\s+is\b)|"
+                         r"(?:^|(?<=[.!?]\s))(?:briefly|in\s+short|in\s+brief|"
+                         r"long\s+story\s+short),|\btl;?dr\b"),
+    "honest read": (r"\b(?:my|an|the)\s+honest\s+(?:read|answer|assessment|opinion|view|"
+                    r"guess|reaction|impression)\b"),
+    # Said of a remark, not of a drone or a drop of powder.
+    "point landed": (r"(?:\b(?:your|my|our|their|his|her|the|that|this)\s+(?:point|comment|"
+                     r"note|feedback|message|framing|argument|suggestion|critique|pitch|"
+                     r"question|idea)s?(?:\s+(?:about|on|from|in|re)\s[^.!?\n]{0,30}?)?\s+"
+                     r"(?:really\s+|clearly\s+)?(?:landed|lands)\b|"
+                     r"(?:^|(?<=[.!?]\s))(?:that|this)\s+(?:really\s+)?landed\b)"
+                     r"(?!\s+(?:on|in|at|near|inside|within|outside|between|above|"
+                     r"below|onto)\b)"),
+    "earn its place": (r"\bearn(?:s|ed|ing)?\s+(?:its|their|a|the|each|every|this|that|"
+                       r"your|our)\s+(?:[\w-]+\s+)?(?:place|keep|spot|seat|slot|step|steps|"
+                       r"inclusion)\b"),
+    # "The piece I can't build is X" for "I can't build X"; "X is where I
+    # most need help" for "I need help with X".
+    "spotlight cleft": (r"(?:^|(?<=[.!?]\s))The\s+(?:piece|bit|thing)\s+"
+                        r"(?:I|we|you|that|nobody|no one)\b[^.!?\n]{0,40}?\s(?:is|are|was)\b|"
+                        r"\b(?:is|are|'s)\s+where\s+(?:I|we|you)\s+(?:most\s+|really\s+)?"
+                        r"(?:need|want|come in|could use|would value)\b"),
+    # Flattery that hands the reader a part: "This is exactly your area.",
+    # "your model is the piece the project lacks".
+    "reader's role": (r"\b(?:that|this|which)(?:'s|\s+is)\s+(?:exactly\s+|squarely\s+|"
+                      r"right\s+)?(?:in\s+)?your\s+(?:expertise|area|wheelhouse|specialty|"
+                      r"forte|strength|lane)\b|"
+                      r"\byour\s[^.!?\n]{0,80}?\b(?:is|are|would be)\s+(?:exactly\s+)?the\s+"
+                      r"(?:[\w-]+\s+){0,4}?(?:the|this|our|my)\s+[\w-]+\s+"
+                      r"(?:needs|lacks|is missing|misses)\b"),
+    # The writer apologizes in email more often than Claude does, so the
+    # apology rule is off there; the overstatement is the tell.
+    "inexcusable": (r"\b(?:inexcusable|unforgivable|there is no excuse|there's no excuse|"
+                    r"I have no excuse)\b"),
+    "one is, the other is": (r"(?:^|(?<=[.!?]\s))(?:One is|The first is)\b"
+                             r"(?:[^.!?\n]|\n(?![ \t]*\n)){1,200}[.!?]\s+"
+                             r"(?:The other is|The second is)\b"),
 }
 FAMILY_MESSAGE = {
     "claude5": "Claude 5-era tell (model-prose survey, 2026-09).",
@@ -202,6 +274,41 @@ SPECS = [
     Spec("lets-dive-in", r"\b(let'?s|we'?ll) (dive|dig) in(to)?\b", "frame",
          "warn", "'Let's dive in.' Start with the content.", "let's dive in",
          flags=I),
+    # An opener that counts what the message holds before saying any of it.
+    # Preventive: the writer flagged it in an agent's email draft that the
+    # filter passed, and none of the exemplars has one. Measure it with the
+    # other frames when the profile is rebuilt.
+    Spec("count-opener", COUNT_OPENER, "frame", "warn",
+         "Announces how many items follow. Start with the first one.",
+         "count announcement", flags=I),
+    Spec("label-lead-in", DRAFT["label lead-in"], "formatting", "warn",
+         "List item that opens on a label ('1. Budget. We can...'). Write "
+         "the item as a sentence, or the list as a paragraph.",
+         "label lead-in", flags=I),
+    Spec("summary-scaffold", DRAFT["summary scaffold"], "scaffold", "warn",
+         "Announces a summary ('Short answer:', 'Briefly,'). Give the "
+         "answer.", "summary scaffold", flags=I),
+    Spec("honest-read", DRAFT["honest read"], "claude5", "warn",
+         "'My honest read'. Give the read; it is honest by default.",
+         "honest read", flags=I),
+    Spec("point-landed", DRAFT["point landed"], "claude5", "warn",
+         "'Your point landed'. Say what you took from it.", "point landed",
+         flags=I),
+    Spec("earn-its-place", DRAFT["earn its place"], "claude5", "warn",
+         "'Earn its place'. Say what decides it: the cost, the test, the "
+         "threshold.", "earn its place", flags=I),
+    Spec("spotlight-cleft", DRAFT["spotlight cleft"], "frame", "warn",
+         "Spotlight frame ('The piece I can't build is X'). Say it "
+         "directly: 'I can't build X'.", "spotlight cleft", flags=I),
+    Spec("readers-role", DRAFT["reader's role"], "sycophancy", "warn",
+         "Tells the reader what their expertise is for. Say what you are "
+         "asking them to do.", "reader's role", flags=I),
+    Spec("inexcusable", DRAFT["inexcusable"], "sycophancy", "warn",
+         "Overstated apology. A plain sorry is enough.", "inexcusable",
+         flags=I),
+    Spec("one-the-other", DRAFT["one is, the other is"], "frame", "warn",
+         "'One is X. The other is Y.' Name both in one sentence.",
+         "one is, the other is", flags=I),
 
     Spec("orders-of-magnitude",
          r"\b(thousands|millions|orders of magnitude|years (of|to)|overnight)"
