@@ -114,7 +114,7 @@ AGENT = {
     "spaced hyphen as dash": r"(?<=[A-Za-z0-9)\]'\"]) - (?=[A-Za-z(\"'])",
     "ALL-CAPS imperative": r"(?-i:\b(?:IMPORTANT|CRITICAL|NEVER|ALWAYS|MUST)\b)",
 }
-# "Three things in one email.", "Two quick questions:", "A few updates,",
+# "Three things in one note.", "Two quick questions:", "A few updates,",
 # "Quick answers to your three questions.": a short count of what follows,
 # standing as its own sentence or clause.
 COUNT_OPENER = (r"(?:^|(?<=[.!?]\s))(?:(?:just|here are|i have|i've got|"
