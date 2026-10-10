@@ -113,6 +113,13 @@ AGENT = {
     "spaced hyphen as dash": r"(?<=[A-Za-z0-9)\]'\"]) - (?=[A-Za-z(\"'])",
     "ALL-CAPS imperative": r"(?-i:\b(?:IMPORTANT|CRITICAL|NEVER|ALWAYS|MUST)\b)",
 }
+# "Three things in one email.", "Two quick questions:", "A few updates,":
+# a short count of what follows, standing as its own sentence or clause.
+COUNT_OPENER = (r"(?:^|(?<=[.!?]\s))(?:(?:just|here are|i have|i've got)\s+)?"
+                r"(?:two|three|four|five|six|a few|a couple of|several|\d)\s+"
+                r"(?:(?:quick|related|small|short|separate|brief|more|other)\s+)?"
+                r"(?:things|questions|items|points|updates|options|notes|asks|"
+                r"requests|topics)\b[^.!?:,\n]{0,24}[.:,]")
 FAMILY_MESSAGE = {
     "claude5": "Claude 5-era tell (model-prose survey, 2026-09).",
     "significance": "Inflated-significance word. Say what it does instead.",
@@ -202,6 +209,13 @@ SPECS = [
     Spec("lets-dive-in", r"\b(let'?s|we'?ll) (dive|dig) in(to)?\b", "frame",
          "warn", "'Let's dive in.' Start with the content.", "let's dive in",
          flags=I),
+    # An opener that counts what the message holds before saying any of it.
+    # Preventive: the writer flagged it in an agent's email draft that the
+    # filter passed, and none of the exemplars has one. Measure it with the
+    # other frames when the profile is rebuilt.
+    Spec("count-opener", COUNT_OPENER, "frame", "warn",
+         "Announces how many items follow. Start with the first one.",
+         "count announcement", flags=I),
 
     Spec("orders-of-magnitude",
          r"\b(thousands|millions|orders of magnitude|years (of|to)|overnight)"

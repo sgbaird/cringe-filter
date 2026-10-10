@@ -121,6 +121,20 @@ class Lint(unittest.TestCase):
         self.assertTrue(any(x["rule"] == "too-long" for x in lint_text(long, "github")))
         self.assertFalse(any(x["rule"] == "too-long" for x in lint_text(long, "tutorial")))
 
+    def test_count_opener(self):
+        # A sentence that counts what follows is flagged; a count inside a
+        # sentence that says something is not.
+        for text in ("Two quick questions about the build.\n\n1. Is it done?",
+                     "Hi Ann,\n\nThree things in one note, sorry for the wait.",
+                     "Thanks. I have two questions:"):
+            found = [x for x in lint_text(text, "email") if x["rule"] == "count-opener"]
+            self.assertEqual(len(found), 1, text)
+            self.assertEqual(found[0]["severity"], "info")
+        for text in ("We ran two options of the solver and both converged.",
+                     "The referee raised three points about the baseline."):
+            self.assertFalse(any(x["rule"] == "count-opener"
+                                 for x in lint_text(text, "email")), text)
+
     def test_contra_rules_are_off(self):
         # "ensure" runs higher in the writer's prose than in Claude's; it must not fire.
         keys = {r.key for r in rules_for("github")}
